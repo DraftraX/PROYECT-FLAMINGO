@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ContactPageClient } from '../components/SecondaryPages';
+---
+
+<Layout
+  title="Contacto & Cotización — Inmobiliaria Flamingo"
+  lockViewport={true}
+>
+  <ContactPageClient client:only="react" />
+</Layout>

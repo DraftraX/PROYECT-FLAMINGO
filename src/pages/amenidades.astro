@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { AmenitiesPageClient } from '../components/SecondaryPages';
+---
+
+<Layout
+  title="Amenidades Exclusivas — Proyecto Residencial Flamingo"
+  lockViewport={true}
+>
+  <AmenitiesPageClient client:only="react" />
+</Layout>

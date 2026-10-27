@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ToursPageClient } from '../components/SecondaryPages';
+---
+
+<Layout
+  title="Recorridos Virtuales 360° — Proyecto Residencial Flamingo"
+  lockViewport={true}
+>
+  <ToursPageClient client:only="react" />
+</Layout>

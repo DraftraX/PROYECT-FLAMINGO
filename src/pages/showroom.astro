@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ShowroomApp } from '../components/ShowroomApp';
+---
+
+<Layout
+  title="Showroom Virtual Interactivo 360° — Proyecto Residencial Flamingo"
+  lockViewport={true}
+>
+  <ShowroomApp client:only="react" />
+</Layout>

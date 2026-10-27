@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 140" fill="none">
+  <defs>
+    <linearGradient id="flamingoGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5c276"/>
+      <stop offset="50%" stop-color="#d69135"/>
+      <stop offset="100%" stop-color="#b0752a"/>
+    </linearGradient>
+    <linearGradient id="flamingoCoral" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#d69135"/>
+    </linearGradient>
+  </defs>
+  <!-- Icono arquitectónico + silueta estilizada Flamingo -->
+  <g transform="translate(18, 16)">
+    <circle cx="54" cy="54" r="50" stroke="url(#flamingoGold)" stroke-width="2.5" fill="rgba(12,20,40,0.65)"/>
+    <path d="M36 82 L36 42 L54 26 L72 42 L72 82" stroke="url(#flamingoGold)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M52 78 C52 56, 66 48, 62 32 C59 22, 47 24, 46 33 C45 39, 53 41, 55 48 C57 55, 44 62, 44 78" stroke="url(#flamingoCoral)" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+    <line x1="26" y1="82" x2="82" y2="82" stroke="url(#flamingoGold)" stroke-width="2.5"/>
+  </g>
+  <!-- Tipografía principal -->
+  <text x="138" y="54" fill="#FFFFFF" font-family="Montserrat, sans-serif" font-size="13" font-weight="700" letter-spacing="6">PROYECTO RESIDENCIAL</text>
+  <text x="136" y="96" fill="url(#flamingoGold)" font-family="Montserrat, sans-serif" font-size="42" font-weight="800" letter-spacing="7">FLAMINGO</text>
+  <text x="138" y="120" fill="rgba(255,255,255,0.72)" font-family="Inter, sans-serif" font-size="11" font-weight="600" letter-spacing="4.5">INMOBILIARIA FLAMINGO · EXCLUSIVIDAD COSTERA</text>
+</svg>

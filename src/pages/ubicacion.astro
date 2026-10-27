@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { LocationMap } from '../components/LocationMap';
+---
+
+<Layout
+  title="Ubicación & Mapa Satelital 3D — Proyecto Residencial Flamingo"
+  lockViewport={true}
+>
+  <LocationMap client:only="react" />
+</Layout>
