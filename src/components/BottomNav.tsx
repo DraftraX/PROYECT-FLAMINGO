@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Home,
   Compass,
   Layers,
-  LayoutGrid,
-  Box,
   Image as ImageIcon,
   Rotate3D,
   Video,
   MapPin,
   Phone,
-  Sliders,
   X,
   Maximize,
   Minimize,
@@ -25,16 +21,13 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'home', label: 'Inicio', href: '/', icon: Home },
-  { id: 'intro', label: 'Showroom', href: '/showroom?step=intro', icon: Compass },
-  { id: 'phases', label: 'Masterplan', href: '/showroom?step=phases', icon: Layers },
-  { id: 'lots', label: 'Lotes', href: '/showroom?step=lots', icon: LayoutGrid },
-  { id: 'models', label: '4 Casas', href: '/showroom?step=models', icon: Box },
-  { id: 'tours', label: 'Tour 360°', href: '/recorridos', icon: Rotate3D },
+  { id: 'intro', label: 'Intro', href: '/showroom?step=intro', icon: Compass },
+  { id: 'urbanization', label: 'Urbanización', href: '/showroom?step=sides', icon: Rotate3D },
+  { id: 'phases', label: 'Master Plan', href: '/showroom?step=phases', icon: Layers },
   { id: 'amenities', label: 'Amenidades', href: '/amenidades', icon: ImageIcon },
-  { id: 'video', label: 'Videos', href: '/video', icon: Video },
+  { id: 'video', label: 'Video', href: '/video', icon: Video },
+  { id: 'tours', label: 'Recorridos', href: '/recorridos', icon: Rotate3D },
   { id: 'location', label: 'Ubicación', href: '/ubicacion', icon: MapPin },
-  { id: 'calibrator', label: 'Calibrador', href: '/showroom?calibrator=true', icon: Sliders },
   { id: 'contact', label: 'Contacto', href: '/contact', icon: Phone },
 ];
 
