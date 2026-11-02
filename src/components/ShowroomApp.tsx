@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
-  Box,
   Camera,
   ChevronDown,
   ChevronLeft,
@@ -13,15 +12,12 @@ import {
   LayoutGrid,
   ListFilter,
   Lock,
-  Map as MapIcon,
   MapPin,
-  Moon,
+  Map as MapIcon,
   MoveHorizontal,
   Rotate3D,
   RotateCcw,
   Sliders,
-  Sun,
-  SunMoon,
   X,
 } from 'lucide-react';
 import {
@@ -493,13 +489,9 @@ export const ShowroomApp: React.FC = () => {
       <div className="hidden md:flex absolute top-5 left-1/2 -translate-x-1/2 z-40 items-center gap-1 p-1.5 rounded-full bg-neutral-950/80 backdrop-blur-xl border border-white/15 shadow-2xl" style={step === 'intro' ? { display: 'none' } : undefined}>
         {(
           [
-            { id: 'intro', label: '1. Pórtico', icon: Compass },
-            { id: 'sides', label: '2. Giro 360°', icon: Rotate3D },
-            { id: 'phases', label: '3. Masterplan', icon: Layers },
-            { id: 'zones', label: '4. Zonas', icon: MapIcon },
-            { id: 'lots', label: '5. Lotes & Día/Noche', icon: LayoutGrid },
-            { id: 'models', label: '6. 4 Casas & 360°', icon: Box },
-            { id: 'location', label: '7. Mapa 3D', icon: MapPin },
+            { id: 'intro', label: '1. Apertura', icon: Compass },
+            { id: 'phases', label: '2. Plano A–H', icon: Layers },
+            { id: 'models', label: '3. Tour 360°', icon: Rotate3D },
           ] as const
         ).map((item) => {
           const Icon = item.icon;
@@ -524,33 +516,6 @@ export const ShowroomApp: React.FC = () => {
           );
         })}
 
-        <div className="h-4 w-px bg-white/15 mx-1" />
-
-        {/* Conmutador Día / Noche Global */}
-        <button
-          type="button"
-          onClick={() => setTimeOfDay((t) => (t === 'day' ? 'night' : 'day'))}
-          className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
-            timeOfDay === 'night'
-              ? 'bg-indigo-600 text-white shadow'
-              : 'bg-white/10 text-amber-300 hover:bg-white/20'
-          }`}
-          title="Alternar iluminación Día / Noche"
-        >
-          {timeOfDay === 'day' ? <Sun size={13} /> : <Moon size={13} />}
-          <span>{timeOfDay === 'day' ? 'Día' : 'Noche'}</span>
-        </button>
-
-        {/* Botón Modo Calibrador */}
-        <button
-          type="button"
-          onClick={() => setCalibratorOpen(true)}
-          className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-brand-primary text-white/75 hover:text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
-          title="Abrir Editor de Calibración en Vivo (?calibrator=true)"
-        >
-          <Sliders size={12} />
-          <span>Calibrar</span>
-        </button>
       </div>
 
       <div className="absolute top-5 right-5 z-50">
@@ -693,17 +658,17 @@ export const ShowroomApp: React.FC = () => {
               <h1 className="mt-2 text-xl sm:text-2xl font-semibold tracking-wide">Plano oficial de lotización</h1>
               <p className="mt-1 text-xs text-white/70">Selecciona una manzana para explorar una vivienda conceptual.</p>
             </header>
-            <div className="relative w-[min(88vw,58vh)] max-h-[66vh] aspect-[1056/1272] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/20">
+            <div className="relative w-[min(88vw,58vh)] max-h-[66vh] aspect-[1034/1272] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/20">
               <img src="/urbanization/flamingo-lots-plan.webp" alt="Plano oficial de lotización de Residencial Flamingo" className="absolute inset-0 w-full h-full object-contain" />
               {[
-                { id: 'A', x: 77.4, y: 18.4 }, { id: 'B', x: 82, y: 49.4 },
-                { id: 'C', x: 55.4, y: 76.9 }, { id: 'D', x: 33.3, y: 85.2 },
-                { id: 'E', x: 15.9, y: 74.2 }, { id: 'F', x: 29.9, y: 59.3 },
-                { id: 'G', x: 35, y: 30 },
+                { id: 'A', x: 76.9, y: 18.4 }, { id: 'B', x: 81.6, y: 49.4 },
+                { id: 'C', x: 54.4, y: 76.9 }, { id: 'D', x: 31.9, y: 85.2 },
+                { id: 'E', x: 14.1, y: 74.2 }, { id: 'F', x: 28.4, y: 59.3 },
+                { id: 'G', x: 33.6, y: 30 },
               ].map((block) => (
                 <button key={block.id} type="button" aria-label={`Explorar manzana ${block.id}`} onClick={() => { setTourModel(HOUSE_MODELS[0]); navigateStep('models'); }} style={{ left: `${block.x}%`, top: `${block.y}%` }} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-white bg-[#76264f]/90 text-white font-bold shadow-[0_0_22px_rgba(236,72,153,.8)] hover:scale-125 transition-transform">{block.id}</button>
               ))}
-              <button type="button" aria-label="Explorar zona de recreación pública" onClick={() => { window.location.href = '/amenidades'; }} style={{ left: '53.2%', top: '38.8%' }} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded-lg bg-emerald-800/90 border border-white/80 text-white text-[9px] sm:text-[10px] font-bold uppercase shadow-lg">H · Recreación</button>
+              <button type="button" aria-label="Explorar zona de recreación pública" onClick={() => { window.location.href = '/amenidades'; }} style={{ left: '52.2%', top: '38.8%' }} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded-lg bg-emerald-800/90 border border-white/80 text-white text-[9px] sm:text-[10px] font-bold uppercase shadow-lg">H · Recreación</button>
             </div>
             <p className="mt-3 max-w-xl text-center text-[10px] leading-relaxed text-white/60">La visita 360° muestra ambientes referenciales generados con IA; la distribución y acabados finales deben confirmarse con la inmobiliaria.</p>
           </div>

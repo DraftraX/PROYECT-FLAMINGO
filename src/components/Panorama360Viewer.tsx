@@ -79,7 +79,7 @@ export const Panorama360Viewer: React.FC<Panorama360ViewerProps> = ({ model, lot
       texture.mapping = THREE.EquirectangularReflectionMapping;
       const geometry = new THREE.SphereGeometry(500, 96, 64);
       geometry.scale(-1, 1, 1);
-      const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
+      const material = new THREE.MeshBasicMaterial({ map: texture });
       const sphere = new THREE.Mesh(geometry, material);
       if (sphereRef.current) {
         scene.remove(sphereRef.current);
