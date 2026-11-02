@@ -491,7 +491,7 @@ export const ShowroomApp: React.FC = () => {
       </div>
 
       {/* Barra Superior de Acceso Rápido a todas las Etapas del Showroom */}
-      <div className="hidden md:flex absolute top-5 left-1/2 -translate-x-1/2 z-40 items-center gap-1 p-1.5 rounded-full bg-neutral-950/80 backdrop-blur-xl border border-white/15 shadow-2xl">
+      <div className="hidden md:flex absolute top-5 left-1/2 -translate-x-1/2 z-40 items-center gap-1 p-1.5 rounded-full bg-neutral-950/80 backdrop-blur-xl border border-white/15 shadow-2xl" style={step === 'intro' ? { display: 'none' } : undefined}>
         {(
           [
             { id: 'intro', label: '1. Pórtico', icon: Compass },
@@ -601,45 +601,23 @@ export const ShowroomApp: React.FC = () => {
             />
           )}
 
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-black/15 to-black/65" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-black/15" />
 
-          {/* Bloque de Identidad y Botón INGRESAR (idéntico a `e5` en showroom1.js) */}
-          <div className="absolute right-[6%] sm:right-[10%] lg:right-[12%] top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-6 lg:gap-7 max-w-xs sm:max-w-md lg:max-w-xl animate-fade-in">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-8 px-6 animate-fade-in">
             <img
               src="/logos/flamingo-logo.svg"
-              alt="Inmobiliaria Flamingo · Proyecto Residencial Flamingo"
-              className="w-72 sm:w-[420px] lg:w-[490px] object-contain drop-shadow-2xl"
+              alt="Residencial Flamingo"
+              className="w-[280px] sm:w-[390px] lg:w-[460px] max-w-[78vw] object-contain drop-shadow-2xl"
             />
 
-            <p className="text-center text-white/85 text-xs sm:text-sm max-w-md leading-relaxed font-secondary">
-              Explora en tiempo real las etapas, los{' '}
-              <strong className="text-brand-light-orange">133 lotes urbanizados</strong>, el
-              comparador solar Día/Noche y nuestros{' '}
-              <strong className="text-brand-light-orange">4 modelos de residencia</strong> con
-              recorrido 360°.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-center">
-              <button
-                type="button"
-                onClick={() => navigateStep('sides', side0.transitions.right)}
-                className="group flex items-center justify-center gap-4 w-full sm:w-auto min-w-[240px] px-8 py-4 bg-black/55 hover:bg-brand-primary backdrop-blur-md border border-brand-orange/60 text-brand-orange hover:text-white text-xs sm:text-sm font-primary uppercase tracking-[0.25em] font-bold transition-all duration-300 hover:scale-105 cursor-pointer shadow-2xl rounded-xl"
-              >
-                <ArrowLeft
-                  size={18}
-                  className="text-brand-orange group-hover:text-white transition-transform duration-300 group-hover:-translate-x-1.5"
-                />
-                <span>INGRESAR</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigateStep('lots', PHASES_DATA[0].zones[0].entryVideo)}
-                className="px-6 py-4 rounded-xl bg-brand-orange hover:bg-brand-dark-orange text-white text-xs font-primary uppercase tracking-[0.2em] font-bold shadow-2xl transition-all hover:scale-105 cursor-pointer"
-              >
-                Ver Lotes Disponibles
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => navigateStep('sides', side0.transitions.right)}
+              className="flex min-w-[220px] items-center justify-center gap-4 border border-brand-orange/60 bg-neutral-950/75 px-8 py-4 text-xs font-primary font-bold uppercase tracking-[0.28em] text-brand-light-orange transition-colors duration-200 hover:border-brand-light-orange hover:bg-neutral-950/90 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-light-orange rounded-[4px]"
+            >
+              <ArrowLeft size={17} />
+              <span>INGRESAR</span>
+            </button>
           </div>
         </div>
       )}
