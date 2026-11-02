@@ -24,7 +24,6 @@ import {
   getAssetUrl,
   HOME_SLIDES,
   HOUSE_MODELS,
-  INITIAL_LOTS,
   LOCATION_MILESTONES,
   SHOWROOM_SIDES,
 } from '../data/flamingoData';
@@ -44,7 +43,7 @@ export const HomeExperience: React.FC = () => {
   const scrollSectionsRef = useRef<HTMLDivElement | null>(null);
   const dayNightSectionRef = useRef<HTMLDivElement | null>(null);
 
-  const introVideoUrl = getAssetUrl('homepage/intro_video.mp4');
+  const introVideoUrl = '/urbanization/sides/side-0/intro.day.mp4';
   const introPosterUrl = getAssetUrl('homepage/intro.webp');
   const walkToShowroomVideo = getAssetUrl('videos/walks/trans_intro_to_0.mp4');
 
@@ -140,7 +139,6 @@ export const HomeExperience: React.FC = () => {
   };
 
   const currentSlide = HOME_SLIDES[activeSlideIdx];
-  const availableCount = INITIAL_LOTS.filter((l) => l.status === 'available').length;
 
   return (
     <div ref={scrollSectionsRef} className="relative w-full min-h-screen bg-neutral-950 text-white overflow-x-hidden">
@@ -259,7 +257,7 @@ export const HomeExperience: React.FC = () => {
               href="/showroom?step=lots"
               className="px-7 py-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/25 text-white font-primary text-xs font-bold uppercase tracking-[0.2em] transition-all hover:scale-105"
             >
-              Mapa de Lotes ({availableCount} Disponibles)
+              Abrir plano oficial interactivo
             </a>
           </div>
 
@@ -297,19 +295,19 @@ export const HomeExperience: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                <span className="text-2xl sm:text-3xl font-primary font-extrabold text-brand-orange tabular-nums">
-                  133
+              <span className="text-2xl sm:text-3xl font-primary font-extrabold text-brand-orange tabular-nums">
+                  A–H
                 </span>
                 <p className="text-xs text-white/65 mt-1">
-                  Lotes independizados en 8 manzanas (Mz K a Mz R)
+                  Manzanas del plano oficial compartido
                 </p>
               </div>
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
                 <span className="text-2xl sm:text-3xl font-primary font-extrabold text-emerald-400 tabular-nums">
-                  4 Modelos
+                  360°
                 </span>
                 <p className="text-xs text-white/65 mt-1">
-                  Viviendas listas para construir con Tour Virtual 360°
+                  Recorrido visual conceptual de interiores
                 </p>
               </div>
             </div>
@@ -431,7 +429,7 @@ export const HomeExperience: React.FC = () => {
               Catálogo Residencial + Visor Equirectangular 360°
             </span>
             <h2 className="text-3xl sm:text-4xl font-primary font-extrabold uppercase tracking-tight mt-1">
-              4 Modelos de Casa Compatibles con tu Lote
+              Recorrido conceptual de interiores 360°
             </h2>
           </div>
           <a

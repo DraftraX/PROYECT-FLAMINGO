@@ -59,43 +59,43 @@ export const POSITION_LABELS: Record<LotPosition, string> = {
 export const HOME_SLIDES = [
   {
     id: 1,
-    tag: ' EXCLUSIVIDAD FRENTE AL SOL DEL NORTE',
-    title: 'UN ESTILO DE VIDA QUE LO TIENE TODO',
+    tag: 'RESIDENCIAL FLAMINGO · TUMBES',
+    title: 'TU LOTE, TU PRÓXIMO HOGAR',
     description:
-      'Residencial Flamingo integra urbanismo moderno, seguridad permanente y arquitectura bioclimática en una comunidad planificada de alta plusvalía.',
-    metric: '133 Lotes Residenciales',
+      'Conoce el plano oficial, las áreas de recreación pública y una propuesta visual para imaginar tu futuro hogar.',
+    metric: '160 m² y 200 m²',
   },
   {
     id: 2,
-    tag: 'ARQUITECTURA PERSONALIZADA',
-    title: '4 DISEÑOS DE CASA LISTOS PARA VIVIR',
+    tag: 'LOTEO RESIDENCIAL',
+    title: 'ESPACIO PARA PROYECTAR',
     description:
-      'Elige tu lote ideal y combínalo con cualquiera de nuestros 4 modelos residenciales con recorridos 360° interactivos y terrazas sociales.',
-    metric: 'Desde 66 m² hasta 116 m²',
+      'Explora las manzanas del proyecto sobre el plano proporcionado por Inmobiliaria Flamingo.',
+    metric: 'Plano oficial A–H',
   },
   {
     id: 3,
-    tag: 'AMENIDADES ESTILO RESORT',
-    title: 'CLUB HOUSE, PISCINAS Y PARQUES PRIVADOS',
+    tag: 'SERVICIOS INDICADOS',
+    title: 'LO ESENCIAL PARA EMPEZAR',
     description:
-      'Más de 15 áreas recreativas pensadas para tu familia: Club House social, parques temáticos por manzana, canchas multiusos y alamedas peatonales.',
-    metric: '+15 Amenidades Exclusivas',
+      'La información comercial compartida indica agua, desagüe, alumbrado público y título de propiedad.',
+    metric: 'Entrega inmediata',
   },
   {
     id: 4,
-    tag: 'UBICACIÓN ESTRATÉGICA',
-    title: 'CONECTADO CON LAS MEJORES PLAYAS Y SERVICIOS',
+    tag: 'UBICACIÓN',
+    title: 'CERCA DE TU DÍA A DÍA',
     description:
-      'Sobre la vía Panamericana Norte, a pocos minutos del Aeropuerto, Costa Mar Plaza y las playas de aguas cálidas de Zorritos y Punta Sal.',
-    metric: 'Alta Rentabilidad Anual',
+      'El material de venta ubica el proyecto a 30 metros del Colegio Virgen Dolorosa.',
+    metric: '30 m del colegio',
   },
   {
     id: 5,
-    tag: 'TECNOLOGÍA INMERSIVA',
-    title: 'EXPLORA CADA LOTE Y VIVIENDA EN TIEMPO REAL',
+    tag: 'RECORRIDO DIGITAL',
+    title: 'MIRA LOS ESPACIOS EN 360°',
     description:
-      'Gira 360° sobre la urbanización, compara la iluminación de día y noche, filtra terrenos por metraje y camina por el interior de las casas.',
-    metric: 'Showroom Digital 360°',
+      'Recorre ambientes conceptuales generados con IA. La distribución final se confirma con el equipo de Flamingo.',
+    metric: 'Sala · cocina · dormitorio',
   },
 ];
 
@@ -119,8 +119,8 @@ export const SHOWROOM_SIDES: Record<string, SideConfig> = {
     label: 'Pórtico Principal · Residencial Flamingo',
     dayImage: getAssetUrl('urbanization/sides/side-0/day.webp'),
     nightImage: getAssetUrl('urbanization/sides/side-0/night.webp'),
-    introVideo: getAssetUrl('urbanization/sides/side-0/intro.day.mp4'),
-    loopVideo: getAssetUrl('urbanization/sides/side-0/loop.day.mp4'),
+    introVideo: '/urbanization/sides/side-0/intro.day.mp4',
+    loopVideo: '/urbanization/sides/side-0/intro.day.mp4',
     transitions: {
       left: getAssetUrl('urbanization/sides/transitions/side-0_to_side-1.day.mp4'),
       right: getAssetUrl('urbanization/sides/transitions/side-0_to_side-1.day.mp4'),
@@ -596,7 +596,6 @@ export interface FlamingoHouseModel {
     posterior: string;
   };
   lotOverlayImage: string;
-  kuulaTourUrl: string;
   rooms360: RoomPanorama360[];
   levels: HouseModelLevel[];
   gallery: string[];
@@ -630,15 +629,13 @@ export const HOUSE_MODELS: FlamingoHouseModel[] = [
       posterior: getAssetUrl('urbanization/lots/modules/module-1/gallery/3.webp'),
     },
     lotOverlayImage: getAssetUrl('urbanization/lots/modules/module-1/right.webp'),
-    kuulaTourUrl:
-      'https://kuula.co/share/collection/7TRqJ?logo=-1&card=1&info=0&fs=1&vr=1&zoom=1&sd=1&initload=0&thumbs=3&inst=es',
     rooms360: [
       {
         id: 'sala',
         label: 'Sala - Comedor Principal',
         description: 'Iluminación natural cenital, pisos de porcelanato formato 120x60 y vista al jardín.',
         equirectangularUrl: '/models/casa-1/panorama/sala-360.webp',
-        backdropPhotoUrl: getAssetUrl('urbanization/lots/modules/module-1/gallery/4.webp'),
+        backdropPhotoUrl: '/models/casa-1/panorama/sala-360.webp',
         hotspots: [
           { targetRoomId: 'cocina', label: 'Ir a Cocina Gourmet', yaw: 35, pitch: -4 },
           { targetRoomId: 'dormitorio', label: 'Subir a Dormitorio Principal', yaw: -45, pitch: 8 },
@@ -649,7 +646,7 @@ export const HOUSE_MODELS: FlamingoHouseModel[] = [
         label: 'Cocina Gourmet & Isla',
         description: 'Tableros de piedra sinterizada, reposteros altos y bajos con cierre lento.',
         equirectangularUrl: '/models/casa-1/panorama/cocina-360.webp',
-        backdropPhotoUrl: getAssetUrl('urbanization/lots/modules/module-1/gallery/5.webp'),
+        backdropPhotoUrl: '/models/casa-1/panorama/cocina-360.webp',
         hotspots: [
           { targetRoomId: 'sala', label: 'Volver a Sala - Comedor', yaw: -30, pitch: -2 },
           { targetRoomId: 'dormitorio', label: 'Ir a Dormitorio Principal', yaw: 50, pitch: 10 },
@@ -660,7 +657,7 @@ export const HOUSE_MODELS: FlamingoHouseModel[] = [
         label: 'Dormitorio Principal Suite',
         description: 'Suite en segundo nivel con balcón hacia la alameda y baño incorporado.',
         equirectangularUrl: '/models/casa-1/panorama/dormitorio-360.webp',
-        backdropPhotoUrl: getAssetUrl('urbanization/lots/modules/module-1/gallery/6.webp'),
+        backdropPhotoUrl: '/models/casa-1/panorama/dormitorio-360.webp',
         hotspots: [
           { targetRoomId: 'sala', label: 'Bajar a Sala - Comedor', yaw: 15, pitch: -12 },
           { targetRoomId: 'cocina', label: 'Ir a Cocina Gourmet', yaw: -40, pitch: -8 },
@@ -746,8 +743,6 @@ export const HOUSE_MODELS: FlamingoHouseModel[] = [
       posterior: getAssetUrl('urbanization/lots/modules/module-1/gallery/8.webp'),
     },
     lotOverlayImage: getAssetUrl('urbanization/lots/modules/module-1/left.webp'),
-    kuulaTourUrl:
-      'https://kuula.co/share/collection/7Tgw3?logo=-1&card=1&info=0&fs=1&vr=1&zoom=1&sd=1&initload=0&thumbs=3&inst=es',
     rooms360: [
       {
         id: 'sala',
@@ -862,8 +857,6 @@ export const HOUSE_MODELS: FlamingoHouseModel[] = [
       posterior: getAssetUrl('urbanization/lots/modules/module-2/gallery/3.webp'),
     },
     lotOverlayImage: getAssetUrl('urbanization/lots/modules/module-2/right.webp'),
-    kuulaTourUrl:
-      'https://kuula.co/share/collection/7TRqJ?logo=-1&card=1&info=0&fs=1&vr=1&zoom=1&sd=1&initload=0&thumbs=3&inst=es',
     rooms360: [
       {
         id: 'sala',
@@ -955,8 +948,6 @@ export const HOUSE_MODELS: FlamingoHouseModel[] = [
       posterior: getAssetUrl('urbanization/lots/modules/module-2/gallery/7.webp'),
     },
     lotOverlayImage: getAssetUrl('urbanization/lots/modules/module-1/down.webp'),
-    kuulaTourUrl:
-      'https://kuula.co/share/collection/7Tgw3?logo=-1&card=1&info=0&fs=1&vr=1&zoom=1&sd=1&initload=0&thumbs=3&inst=es',
     rooms360: [
       {
         id: 'sala',
@@ -1154,7 +1145,7 @@ export const AMENITIES_ZONES = [
   },
 ];
 
-export const WHATSAPP_NUMBER = '51999888777';
+export const WHATSAPP_NUMBER = '51940152191';
 
 export function buildWhatsAppUrl(message: string): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;

@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import {
   BLOCKS_DATA,
-  type FlamingoHouseModel,
   type FlamingoLot,
   getAssetUrl,
   HOUSE_MODELS,
@@ -45,7 +44,8 @@ import {
 } from '../data/flamingoData';
 import { BottomNav, FloatingMenuTrigger, FullscreenButton } from './BottomNav';
 import { CalibratorOverlay } from './CalibratorOverlay';
-import { HouseModelDetailModal, LotInspectorOverlay } from './HouseModal';
+import { LotInspectorOverlay } from './HouseModal';
+import { Panorama360Viewer } from './Panorama360Viewer';
 import { LocationMap } from './LocationMap';
 
 export type ShowroomStep =
@@ -317,8 +317,7 @@ export const ShowroomApp: React.FC = () => {
   const [hoveredLotId, setHoveredLotId] = useState<string | null>(null);
   const [pinnedLotId, setPinnedLotId] = useState<string | null>(null);
   const [inspectingLot, setInspectingLot] = useState<FlamingoLot | null>(null);
-  const [inspectingHouseModel, setInspectingHouseModel] =
-    useState<FlamingoHouseModel | null>(null);
+  const [tourModel, setTourModel] = useState<(typeof HOUSE_MODELS)[number] | null>(null);
 
   // Estado del Sidebar Derecho en Zone View (Vistas vs Filtros)
   const [sidebarTab, setSidebarTab] = useState<'views' | 'filters'>('filters');
@@ -366,7 +365,7 @@ export const ShowroomApp: React.FC = () => {
       rawStep === 'models' ||
       rawStep === 'location'
     ) {
-      setStep(rawStep);
+      setStep(rawStep === 'lots' || rawStep === 'zones' ? 'phases' : rawStep);
     } else if (rawStep === 'masterplan') {
       setStep('phases');
     }
@@ -687,85 +686,27 @@ export const ShowroomApp: React.FC = () => {
           STEP 3: PHASES (`?step=phases` — Masterplan de Etapas 1 a 4)
          ===================================================================== */}
       {step === 'phases' && (
-        <>
-          <ShowroomStage src={MASTERPLAN_IMAGE} alt="Masterplan Etapas Residencial Flamingo">
-            <svg
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              className="absolute inset-0 w-full h-full z-10"
-            >
-              {PHASES_DATA.map((phase) => {
-                const isAvailable = phase.status === 'available';
-                const isHovered = hoveredPhaseId === phase.id;
-                return (
-                  <path
-                    key={phase.id}
-                    d={phase.hotspot.path}
-                    onClick={() => {
-                      if (isAvailable) {
-                        setActivePhase(phase);
-                        navigateStep('zones', phase.entryVideo);
-                      }
-                    }}
-                    onMouseEnter={() => setHoveredPhaseId(phase.id)}
-                    onMouseLeave={() =>
-                      setHoveredPhaseId((prev) => (prev === phase.id ? null : prev))
-                    }
-                    className={`transition-colors duration-300 ${
-                      isAvailable
-                        ? isHovered
-                          ? 'fill-brand-primary/40 stroke-white [stroke-width:0.12] cursor-pointer'
-                          : 'fill-brand-orange/15 stroke-white/40 hover:fill-brand-primary/40 hover:stroke-white [stroke-width:0.1] cursor-pointer'
-                        : 'fill-black/30 stroke-white/20 [stroke-width:0.06] cursor-not-allowed'
-                    }`}
-                  />
-                );
-              })}
-            </svg>
-
-            {PHASES_DATA.map((phase) => {
-              const isAvailable = phase.status === 'available';
-              const isHovered = hoveredPhaseId === phase.id;
-              return (
-                <button
-                  key={phase.id}
-                  type="button"
-                  disabled={!isAvailable}
-                  onClick={() => {
-                    if (isAvailable) {
-                      setActivePhase(phase);
-                      navigateStep('zones', phase.entryVideo);
-                    }
-                  }}
-                  onMouseEnter={() => setHoveredPhaseId(phase.id)}
-                  onMouseLeave={() =>
-                    setHoveredPhaseId((prev) => (prev === phase.id ? null : prev))
-                  }
-                  style={{ left: `${phase.hotspot.x}%`, top: `${phase.hotspot.y}%` }}
-                  className={`absolute z-20 -translate-x-1/2 -translate-y-1/2 group ${
-                    isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'
-                  }`}
-                >
-                  <span
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full backdrop-blur-md border text-[10px] lg:text-xs uppercase tracking-[0.18em] font-bold transition-all duration-300 ${
-                      !isAvailable
-                        ? 'bg-black/60 border-white/15 text-white/60'
-                        : isHovered
-                        ? 'bg-brand-orange border-white text-white shadow-2xl scale-110'
-                        : 'bg-brand-primary/90 border-white/30 text-white shadow-2xl group-hover:scale-110'
-                    }`}
-                  >
-                    {!isAvailable ? <Lock size={12} /> : <Layers size={13} />}
-                    <span>{phase.label}</span>
-                  </span>
-                  <span className="mt-1.5 block text-[9px] uppercase tracking-[0.2em] font-semibold text-white/85 drop-shadow">
-                    {isAvailable ? 'Click para ingresar' : phase.comingSoonNote}
-                  </span>
-                </button>
-              );
-            })}
-          </ShowroomStage>
-
+        <div className="fixed inset-0 z-10 overflow-y-auto bg-[#241b29] text-white">
+          <div className="min-h-full flex flex-col items-center justify-center px-4 pt-20 pb-24">
+            <header className="mb-4 text-center">
+              <p className="text-[10px] uppercase tracking-[0.28em] text-pink-200">Residencial Flamingo · Tumbes</p>
+              <h1 className="mt-2 text-xl sm:text-2xl font-semibold tracking-wide">Plano oficial de lotización</h1>
+              <p className="mt-1 text-xs text-white/70">Selecciona una manzana para explorar una vivienda conceptual.</p>
+            </header>
+            <div className="relative w-[min(88vw,58vh)] max-h-[66vh] aspect-[1056/1272] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/20">
+              <img src="/urbanization/flamingo-lots-plan.webp" alt="Plano oficial de lotización de Residencial Flamingo" className="absolute inset-0 w-full h-full object-contain" />
+              {[
+                { id: 'A', x: 77.4, y: 18.4 }, { id: 'B', x: 82, y: 49.4 },
+                { id: 'C', x: 55.4, y: 76.9 }, { id: 'D', x: 33.3, y: 85.2 },
+                { id: 'E', x: 15.9, y: 74.2 }, { id: 'F', x: 29.9, y: 59.3 },
+                { id: 'G', x: 35, y: 30 },
+              ].map((block) => (
+                <button key={block.id} type="button" aria-label={`Explorar manzana ${block.id}`} onClick={() => { setTourModel(HOUSE_MODELS[0]); navigateStep('models'); }} style={{ left: `${block.x}%`, top: `${block.y}%` }} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-white bg-[#76264f]/90 text-white font-bold shadow-[0_0_22px_rgba(236,72,153,.8)] hover:scale-125 transition-transform">{block.id}</button>
+              ))}
+              <button type="button" aria-label="Explorar zona de recreación pública" onClick={() => { window.location.href = '/amenidades'; }} style={{ left: '53.2%', top: '38.8%' }} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded-lg bg-emerald-800/90 border border-white/80 text-white text-[9px] sm:text-[10px] font-bold uppercase shadow-lg">H · Recreación</button>
+            </div>
+            <p className="mt-3 max-w-xl text-center text-[10px] leading-relaxed text-white/60">La visita 360° muestra ambientes referenciales generados con IA; la distribución y acabados finales deben confirmarse con la inmobiliaria.</p>
+          </div>
           <button
             type="button"
             onClick={() => navigateStep('sides')}
@@ -774,12 +715,7 @@ export const ShowroomApp: React.FC = () => {
             <Compass size={13} /> Vistas 360°
           </button>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 px-5 py-2.5 rounded-full bg-black/55 backdrop-blur-md border border-white/15 text-center">
-            <p className="text-white/90 font-secondary text-[11px] uppercase tracking-[0.2em]">
-              Selecciona la <strong>Etapa 1 · Flamingo Oasis</strong> para explorar las zonas y lotes
-            </p>
-          </div>
-        </>
+        </div>
       )}
 
       {/* =====================================================================
@@ -1328,108 +1264,29 @@ export const ShowroomApp: React.FC = () => {
          ===================================================================== */}
       {step === 'models' && (
         <div className="relative w-full h-full overflow-y-auto bg-neutral-950 pt-24 pb-16 px-6 lg:px-12">
-          <div className="max-w-7xl mx-auto space-y-8">
+          <div className="max-w-5xl mx-auto space-y-8">
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-6">
               <div>
-                <p className="text-xs font-primary uppercase tracking-[0.25em] text-brand-orange font-bold">
-                  Residencial Flamingo · Arquitectura & Recorridos 360°
-                </p>
-                <h1 className="text-3xl sm:text-4xl font-primary font-extrabold text-white uppercase tracking-tight mt-1">
-                  Los 4 Modelos de Casa
-                </h1>
+                <p className="text-xs uppercase tracking-[0.25em] text-pink-200 font-bold">Residencial Flamingo · Tumbes</p>
+                <h1 className="text-3xl sm:text-4xl font-bold text-white uppercase tracking-tight mt-1">Recorrido conceptual 360°</h1>
+                <p className="mt-2 max-w-xl text-sm text-white/65">Explora sala-comedor, cocina y dormitorio en una propuesta visual generada con IA.</p>
               </div>
-              <button
-                type="button"
-                onClick={() => navigateStep('lots')}
-                className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-brand-orange text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
-              >
-                <LayoutGrid size={15} />
-                <span>Elegir sobre el Plano de Lotes</span>
+              <button type="button" onClick={() => navigateStep('phases')} className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-brand-orange text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer">
+                <LayoutGrid size={15} /> Volver al plano oficial
               </button>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {HOUSE_MODELS.map((model) => (
-                <div
-                  key={model.id}
-                  className="group rounded-2xl overflow-hidden bg-neutral-900/90 border border-white/15 hover:border-brand-orange/60 transition-all shadow-2xl flex flex-col"
-                >
-                  <div className="relative h-64 overflow-hidden">
-                    <img
-                      src={model.exteriors.frontal}
-                      alt={model.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-black/30" />
-                    <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-brand-orange text-white text-[10px] font-bold uppercase tracking-widest">
-                      {model.badge}
-                    </span>
-                    <span className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-white text-xs font-bold tabular-nums">
-                      Desde USD ${model.priceFromUsd.toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="p-6 flex-1 flex flex-col justify-between space-y-5">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-light-orange">
-                        {model.code}
-                      </p>
-                      <h2 className="text-2xl font-primary font-bold text-white mt-0.5">
-                        {model.name}
-                      </h2>
-                      <p className="text-xs text-white/65 mt-2 leading-relaxed">
-                        {model.description}
-                      </p>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-white/5 border border-white/10 text-center text-xs">
-                        <div>
-                          <span className="block font-bold text-white tabular-nums">
-                            {model.builtAreaSqm} m²
-                          </span>
-                          <span className="text-[10px] text-white/45">Techados</span>
-                        </div>
-                        <div>
-                          <span className="block font-bold text-white tabular-nums">
-                            {model.bedrooms} Dorm.
-                          </span>
-                          <span className="text-[10px] text-white/45">Con closets</span>
-                        </div>
-                        <div>
-                          <span className="block font-bold text-white tabular-nums">
-                            {model.floorsCount} {model.floorsCount > 1 ? 'Pisos' : 'Piso'}
-                          </span>
-                          <span className="text-[10px] text-white/45">Nivel</span>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setInspectingHouseModel(model)}
-                        className="w-full py-3.5 rounded-xl bg-brand-primary hover:bg-brand-orange text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer"
-                      >
-                        <Rotate3D size={16} />
-                        <span>Explorar 3 Vistas, Planos & Tour 360°</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <button type="button" onClick={() => setTourModel(HOUSE_MODELS[0])} className="relative w-full min-h-[320px] overflow-hidden rounded-2xl border border-white/15 text-left group">
+              <img src="/models/casa-1/panorama/sala-360.webp" alt="Visualización conceptual de sala-comedor Flamingo" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+              <span className="absolute bottom-6 left-6 right-6">
+                <span className="block text-[10px] uppercase tracking-[.24em] text-pink-200">Propuesta de interiores · Referencial</span>
+                <span className="mt-1 block text-2xl font-semibold text-white">Entra al recorrido</span>
+                <span className="mt-2 inline-flex px-4 py-2 rounded-full bg-pink-600 text-white text-xs font-bold uppercase tracking-wider">Abrir tour 360°</span>
+              </span>
+            </button>
+            <p className="text-center text-xs text-white/50">Imágenes conceptuales generadas con IA. Planos, metrajes y acabados finales por confirmar con Inmobiliaria Flamingo.</p>
           </div>
-
-          {inspectingHouseModel && (
-            <HouseModelDetailModal
-              model={inspectingHouseModel}
-              onClose={() => setInspectingHouseModel(null)}
-              onSelectModel={(id) =>
-                setInspectingHouseModel(
-                  HOUSE_MODELS.find((m) => m.id === id) || inspectingHouseModel
-                )
-              }
-            />
-          )}
+          {tourModel && <Panorama360Viewer model={tourModel} onClose={() => setTourModel(null)} />}
         </div>
       )}
 
