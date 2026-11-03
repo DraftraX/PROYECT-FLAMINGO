@@ -1,6 +1,9 @@
 {
-  "framework": "astro",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "cleanUrls": true
+  "redirects": [
+    {
+      "source": "/showroom",
+      "destination": "/",
+      "permanent": true
+    }
+  ]
 }

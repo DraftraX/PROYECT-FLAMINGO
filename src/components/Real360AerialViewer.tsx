@@ -1,15 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Compass, Expand, Minimize2, Pause, Play, Rotate3D, ZoomIn, ZoomOut } from 'lucide-react';
 
 export interface AerialPanoramaItem {
   id: string;
   code: string;
   title: string;
-  subtitle: string;
-  altitude: string;
   equirectangularUrl: string;
-  thumbUrl: string;
   initialYaw?: number;
   initialPitch?: number;
 }
@@ -17,89 +13,65 @@ export interface AerialPanoramaItem {
 export const REAL_DRIVE_PANORAMAS_360: AerialPanoramaItem[] = [
   {
     id: 'pano-0098',
-    code: 'DJI · 0098',
+    code: 'VISTA 01 / 08',
     title: 'Pórtico de Ingreso y Colegio Virgen Dolorosa (a 30m)',
-    subtitle: 'Vista aérea 360° sobre el acceso principal y el entorno educativo consolidado',
-    altitude: 'Altura Dron · 65m',
     equirectangularUrl: '/drive/360/pano-0098.webp',
-    thumbUrl: '/drive/360/pano-0098-thumb.webp',
     initialYaw: 185,
     initialPitch: -18,
   },
   {
     id: 'pano-0099',
-    code: 'DJI · 0099',
-    title: 'Avenida Principal y Trazo de Manzanas',
-    subtitle: 'Perspectiva esférica sobre el eje vial central y lotes de 160 m² y 200 m²',
-    altitude: 'Altura Dron · 70m',
+    code: 'VISTA 02 / 08',
+    title: 'Avenida Principal y Manzanas de 160 m² y 200 m²',
     equirectangularUrl: '/drive/360/pano-0099.webp',
-    thumbUrl: '/drive/360/pano-0099-thumb.webp',
     initialYaw: 160,
     initialPitch: -16,
   },
   {
     id: 'pano-0100',
-    code: 'DJI · 0100',
-    title: 'Parque Central y Boulevard de Palmeras',
-    subtitle: 'Vista 360° del corazón recreativo del proyecto y su alameda central',
-    altitude: 'Altura Dron · 60m',
+    code: 'VISTA 03 / 08',
+    title: 'Parque Central y Alameda de Palmeras',
     equirectangularUrl: '/drive/360/pano-0100.webp',
-    thumbUrl: '/drive/360/pano-0100-thumb.webp',
     initialYaw: 145,
     initialPitch: -15,
   },
   {
     id: 'pano-0102',
-    code: 'DJI · 0102',
-    title: 'Corredor Vial y Conexión Urbana',
-    subtitle: 'Panorámica completa de la vía de acceso directo y lotes esquineros',
-    altitude: 'Altura Dron · 75m',
+    code: 'VISTA 04 / 08',
+    title: 'Corredor Vial y Acceso Directo',
     equirectangularUrl: '/drive/360/pano-0102.webp',
-    thumbUrl: '/drive/360/pano-0102-thumb.webp',
     initialYaw: 200,
     initialPitch: -18,
   },
   {
     id: 'pano-0103',
-    code: 'DJI · 0103',
-    title: 'Sector Residencial Norte — Lotes de 160 m²',
-    subtitle: 'Vista aérea sobre las manzanas interiores con cajas de agua y desagüe',
-    altitude: 'Altura Dron · 68m',
+    code: 'VISTA 05 / 08',
+    title: 'Sector Residencial Norte · Lotes de 160 m²',
     equirectangularUrl: '/drive/360/pano-0103.webp',
-    thumbUrl: '/drive/360/pano-0103-thumb.webp',
     initialYaw: 175,
     initialPitch: -16,
   },
   {
     id: 'pano-0104',
-    code: 'DJI · 0104',
-    title: 'Sector Residencial Sur — Lotes de 200 m²',
-    subtitle: 'Amplitud de frentes y orientación hacia la brisa natural del valle',
-    altitude: 'Altura Dron · 72m',
+    code: 'VISTA 06 / 08',
+    title: 'Sector Residencial Sur · Lotes de 200 m²',
     equirectangularUrl: '/drive/360/pano-0104.webp',
-    thumbUrl: '/drive/360/pano-0104-thumb.webp',
     initialYaw: 190,
     initialPitch: -16,
   },
   {
     id: 'pano-0105',
-    code: 'DJI · 0105',
-    title: 'Vista Integral del Condominio y Valle',
-    subtitle: 'Dominio visual completo de la parcelación y cordillera circundante',
-    altitude: 'Altura Dron · 85m',
+    code: 'VISTA 07 / 08',
+    title: 'Panorámica Integral del Condominio',
     equirectangularUrl: '/drive/360/pano-0105.webp',
-    thumbUrl: '/drive/360/pano-0105-thumb.webp',
     initialYaw: 170,
     initialPitch: -18,
   },
   {
     id: 'pano-0120',
-    code: 'DJI · 0120',
-    title: 'Horizonte Panorámico 360° — Entorno Consolidado',
-    subtitle: 'Conectividad inmediata con equipamiento educativo, recreativo y vías',
-    altitude: 'Altura Dron · 90m',
+    code: 'VISTA 08 / 08',
+    title: 'Horizonte del Valle y Entorno Consolidado',
     equirectangularUrl: '/drive/360/pano-0120.webp',
-    thumbUrl: '/drive/360/pano-0120-thumb.webp',
     initialYaw: 180,
     initialPitch: -15,
   },
@@ -115,9 +87,8 @@ export const Real360AerialViewer: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const stageWrapRef = useRef<HTMLDivElement>(null);
   const canvasHostRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -137,7 +108,6 @@ export const Real360AerialViewer: React.FC = () => {
   autoRotateRef.current = autoRotate;
   draggingRef.current = isDragging;
 
-  // Initialize Three.js Spherical Scene
   useEffect(() => {
     const host = canvasHostRef.current;
     if (!host) return;
@@ -174,10 +144,9 @@ export const Real360AerialViewer: React.FC = () => {
       const elapsed = Math.min(now - previous, 50);
       previous = now;
       const rotating = autoRotateRef.current && !draggingRef.current;
-      const nextYaw = (yawRef.current + (rotating ? elapsed * 0.0038 : 0) + 360) % 360;
+      const nextYaw = (yawRef.current + (rotating ? elapsed * 0.0035 : 0) + 360) % 360;
       if (rotating) {
         yawRef.current = nextYaw;
-        if (now % 140 < 20) setYaw(nextYaw);
       }
 
       if (Math.abs(camera.fov - fovRef.current) > 0.1) {
@@ -201,14 +170,9 @@ export const Real360AerialViewer: React.FC = () => {
       (sphereRef.current?.material as THREE.Material | undefined)?.dispose();
       renderer.dispose();
       renderer.domElement.remove();
-      sceneRef.current = null;
-      cameraRef.current = null;
-      rendererRef.current = null;
-      sphereRef.current = null;
     };
   }, []);
 
-  // Load equirectangular texture when selection changes
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
@@ -293,177 +257,151 @@ export const Real360AerialViewer: React.FC = () => {
   };
 
   const toggleFullscreen = () => {
-    const el = wrapperRef.current;
+    const el = stageWrapRef.current;
     if (!el) return;
     if (!document.fullscreenElement) {
-      el.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => {});
+      el.requestFullscreen?.().catch(() => {});
     } else {
-      document.exitFullscreen?.().then(() => setIsFullscreen(false)).catch(() => {});
+      document.exitFullscreen?.().catch(() => {});
     }
   };
 
   return (
-    <div
-      ref={wrapperRef}
-      className="overflow-hidden rounded-[2rem] border border-[#361D42]/15 bg-[#23112B] text-[#F5F1FA] shadow-[0_28px_80px_rgba(35,17,43,0.22)]"
-    >
-      {/* Top Bar HUD */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-[#23112B]/95 px-6 py-4 backdrop-blur-xl">
-        <div className="flex items-center gap-3.5">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EE6B96]/20 text-[#EE6B96] border border-[#EE6B96]/35">
-            <Rotate3D size={20} />
-          </span>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-[#515B1B] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#F5F1FA]">
-                {currentPano.code}
-              </span>
-              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#EAE3F2]/70">
-                {currentPano.altitude} · Captura Real en Terreno
-              </span>
-            </div>
-            <h3 className="font-display text-xl text-white sm:text-2xl">{currentPano.title}</h3>
+    <div className="w-full space-y-8">
+      {/* Clean Panoramic Frame (Selva Profunda style) */}
+      <div
+        ref={stageWrapRef}
+        className="relative w-full h-[460px] sm:h-[560px] overflow-hidden bg-[#23112B]"
+      >
+        <div
+          ref={canvasHostRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className={`relative h-full w-full select-none touch-none ${
+            isDragging ? 'cursor-grabbing' : 'cursor-grab'
+          }`}
+        />
+
+        {isLoading && (
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-[#23112B]/40 backdrop-blur-sm">
+            <span className="font-dm text-xs uppercase tracking-[0.25em] text-white">
+              Cargando vista 360°...
+            </span>
           </div>
+        )}
+
+        {/* Minimalist Top-Left Caption */}
+        <div className="pointer-events-none absolute left-6 top-6 z-10 bg-white/92 backdrop-blur-md px-5 py-3 text-[#361D42]">
+          <span className="block font-dm text-[10px] font-bold uppercase tracking-[0.24em] text-[#515B1B]">
+            {currentPano.code} · ARRASTRA PARA GIRAR EN 360°
+          </span>
+          <p className="font-geista text-xl sm:text-2xl text-[#361D42] mt-0.5">
+            {currentPano.title}
+          </p>
+        </div>
+      </div>
+
+      {/* Selva Profunda Minimalist Status Legend + Floating Control Dock */}
+      <div className="flex flex-col items-center gap-5">
+        {/* 3 Pastel Status Pills (exact Selva Profunda reference) */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <span className="rounded-full bg-[#E6F2EA] px-6 py-2 font-dm text-xs font-bold text-[#26643B]">
+            Disponible · 160 m² y 200 m²
+          </span>
+          <span className="rounded-full bg-[#FDF3E3] px-6 py-2 font-dm text-xs font-bold text-[#9C6516]">
+            Separación en Preventa
+          </span>
+          <span className="rounded-full bg-[#FCE8EF] px-6 py-2 font-dm text-xs font-bold text-[#B33662]">
+            Entrega Inmediata
+          </span>
         </div>
 
-        {/* Viewer Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="hidden items-center gap-1.5 rounded-full border border-white/12 bg-white/5 px-3.5 py-1.5 text-xs text-[#EAE3F2]/85 sm:flex">
-            <Compass size={14} className="text-[#EE6B96]" />
-            <span>{Math.round(yaw)}°</span>
-            <span className="text-white/30">·</span>
-            <span>Inclinación {Math.round(pitch)}°</span>
-          </div>
-
+        {/* Clean White Pill Control Dock (exact Selva Profunda reference) */}
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 shadow-[0_10px_35px_rgba(54,29,66,0.08)] border border-[#361D42]/10">
           <button
             type="button"
             onClick={() => setFov((v) => Math.max(38, v - 10))}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/85 transition hover:border-[#EE6B96] hover:bg-[#EE6B96] hover:text-white"
-            title="Acercar vista"
-            aria-label="Acercar vista"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-lg font-medium text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer"
+            title="Acercar"
+            aria-label="Acercar"
           >
-            <ZoomIn size={15} />
+            +
           </button>
           <button
             type="button"
             onClick={() => setFov((v) => Math.min(88, v + 10))}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/85 transition hover:border-[#EE6B96] hover:bg-[#EE6B96] hover:text-white"
-            title="Alejar vista"
-            aria-label="Alejar vista"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-lg font-medium text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer"
+            title="Alejar"
+            aria-label="Alejar"
           >
-            <ZoomOut size={15} />
+            −
           </button>
 
           <button
             type="button"
             onClick={() => setAutoRotate((v) => !v)}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-[0.14em] transition ${
-              autoRotate
-                ? 'border-[#EE6B96]/50 bg-[#EE6B96]/20 text-[#F48FB1]'
-                : 'border-white/15 bg-white/5 text-white/80 hover:bg-white/10'
+            className={`px-4 h-10 rounded-full font-dm text-xs font-bold tracking-wider uppercase transition-colors cursor-pointer ${
+              autoRotate ? 'bg-[#361D42] text-white' : 'text-[#361D42] hover:bg-[#EAE3F2]'
             }`}
           >
-            {autoRotate ? <Pause size={13} /> : <Play size={13} />}
-            {autoRotate ? 'Órbita Activa' : 'Orbitar'}
+            360°
           </button>
+
+          <div className="h-5 w-px bg-[#361D42]/15 mx-1" />
+
+          <button
+            type="button"
+            onClick={() =>
+              setSelectedIdx(
+                (i) => (i - 1 + REAL_DRIVE_PANORAMAS_360.length) % REAL_DRIVE_PANORAMAS_360.length
+              )
+            }
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer"
+            title="Vista anterior"
+            aria-label="Vista anterior"
+          >
+            ←
+          </button>
+
+          {/* Numbered Dots 1..8 */}
+          <div className="flex items-center gap-1 px-1">
+            {REAL_DRIVE_PANORAMAS_360.map((p, idx) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setSelectedIdx(idx)}
+                className={`h-8 w-8 rounded-full font-dm text-xs font-bold transition-colors cursor-pointer ${
+                  idx === selectedIdx
+                    ? 'bg-[#EE6B96] text-white'
+                    : 'text-[#361D42]/70 hover:bg-[#EAE3F2]'
+                }`}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSelectedIdx((i) => (i + 1) % REAL_DRIVE_PANORAMAS_360.length)}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer"
+            title="Siguiente vista"
+            aria-label="Siguiente vista"
+          >
+            →
+          </button>
+
+          <div className="h-5 w-px bg-[#361D42]/15 mx-1 hidden sm:block" />
 
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/85 transition hover:border-[#EE6B96] hover:bg-[#EE6B96] hover:text-white"
-            title="Pantalla completa"
-            aria-label="Pantalla completa"
+            className="hidden sm:flex px-4 h-10 items-center justify-center rounded-full font-dm text-xs font-medium text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer"
           >
-            {isFullscreen ? <Minimize2 size={15} /> : <Expand size={15} />}
+            Expandir
           </button>
-        </div>
-      </div>
-
-      {/* Main 360 Spherical Stage */}
-      <div
-        ref={canvasHostRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        className={`relative h-[460px] w-full select-none touch-none overflow-hidden sm:h-[560px] ${
-          isDragging ? 'cursor-grabbing' : 'cursor-grab'
-        }`}
-      >
-        {/* Loading Shimmer */}
-        {isLoading && (
-          <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#23112B]/70 backdrop-blur-sm">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#EE6B96] border-t-transparent" />
-            <span className="mt-3 text-xs font-bold uppercase tracking-[0.2em] text-[#EAE3F2]">
-              Cargando Esfera 360° ({currentPano.code})...
-            </span>
-          </div>
-        )}
-
-        {/* Interactive Drag Hint Pill */}
-        <div className="pointer-events-none absolute left-5 top-5 z-10 flex items-center gap-2 rounded-full border border-white/20 bg-[#23112B]/75 px-4 py-2 text-xs font-medium text-[#F5F1FA] backdrop-blur-md">
-          <Rotate3D size={15} className="text-[#EE6B96]" />
-          <span>Arrastra en 360° para explorar el terreno real y su entorno</span>
-        </div>
-
-        {/* Bottom Caption Overlay */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-wrap items-end justify-between gap-4 bg-gradient-to-t from-[#23112B]/90 via-[#23112B]/40 to-transparent p-6">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#F48FB1]">
-              Vista {selectedIdx + 1} de {REAL_DRIVE_PANORAMAS_360.length} · Registro Aéreo Oficial DJI
-            </p>
-            <p className="mt-1 max-w-2xl text-sm text-[#EAE3F2]/90">{currentPano.subtitle}</p>
-          </div>
-          <div className="rounded-full border border-white/15 bg-black/45 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#EAE3F2]/85 backdrop-blur-md">
-            Lotes de 160 m² y 200 m² · Entrega Inmediata
-          </div>
-        </div>
-      </div>
-
-      {/* Filmstrip Selector of all 8 Real 360° Panoramas */}
-      <div className="border-t border-white/10 bg-[#1B0C22] px-5 py-4">
-        <div className="mb-2.5 flex items-center justify-between text-xs">
-          <span className="font-bold uppercase tracking-[0.18em] text-[#EAE3F2]/75">
-            Selecciona una captura aérea 360° del proyecto ({REAL_DRIVE_PANORAMAS_360.length} puntos reales)
-          </span>
-          <span className="hidden text-[11px] text-[#EAE3F2]/50 sm:inline">
-            Vuelo fotogramétrico real sobre Flamingo Residencial
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
-          {REAL_DRIVE_PANORAMAS_360.map((item, idx) => {
-            const active = idx === selectedIdx;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setSelectedIdx(idx)}
-                className={`group relative overflow-hidden rounded-xl border text-left transition-all ${
-                  active
-                    ? 'border-[#EE6B96] ring-2 ring-[#EE6B96]/50 scale-[1.02]'
-                    : 'border-white/10 opacity-75 hover:border-white/30 hover:opacity-100'
-                }`}
-              >
-                <div className="aspect-[2/1] w-full overflow-hidden bg-[#361D42]">
-                  <img
-                    src={item.thumbUrl}
-                    alt={item.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </div>
-                <div className="bg-[#23112B]/95 px-2.5 py-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#EE6B96]">
-                      {item.code}
-                    </span>
-                    <span className="text-[9px] text-white/55">360°</span>
-                  </div>
-                  <p className="truncate text-[11px] font-medium text-white/90">{item.title}</p>
-                </div>
-              </button>
-            );
-          })}
         </div>
       </div>
     </div>
