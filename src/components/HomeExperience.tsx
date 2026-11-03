@@ -6,28 +6,23 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Compass,
-  Droplets,
-  FileCheck2,
   Layers,
-  Lightbulb,
   MapPin,
-  Maximize2,
   MessageCircle,
   Rotate3D,
   ShieldCheck,
   Sparkles,
-  Waves,
 } from 'lucide-react';
 import {
   buildFlamingoWhatsAppUrl,
   FLAMINGO_BRAND,
-  URBAN_SERVICES,
   WHATSAPP_ADVISORS,
 } from '../config/flamingo';
 import { type FlamingoHouseModel, HOUSE_MODELS } from '../data/flamingoData';
 import { CanvasScrollSequence } from './CanvasScrollSequence';
 import { HouseModelDetailModal } from './HouseModal';
-import { Panorama360Viewer } from './Panorama360Viewer';
+import { Real360AerialViewer } from './Real360AerialViewer';
+import { RealProjectShowcase } from './RealProjectShowcase';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -150,8 +145,6 @@ export const HomeExperience: React.FC = () => {
   const [lotFilterArea, setLotFilterArea] = useState<'all' | 160 | 200>('all');
   const [selectedLot, setSelectedLot] = useState<InteractiveLotItem>(FEATURED_LOTS[0]);
   const [selectedModel, setSelectedModel] = useState<FlamingoHouseModel | null>(null);
-  const [activePanoRoomIdx, setActivePanoRoomIdx] = useState<number>(0);
-  const [fullscreen360Open, setFullscreen360Open] = useState<boolean>(false);
 
   // Lead form state for instant WhatsApp reservation
   const [leadName, setLeadName] = useState<string>('');
@@ -190,6 +183,23 @@ export const HomeExperience: React.FC = () => {
               trigger: el,
               start: 'top 86%',
               toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
+
+      gsap.utils.toArray<HTMLElement>('.gsap-progress-fill').forEach((bar) => {
+        const targetWidth = bar.getAttribute('data-width') || '100%';
+        gsap.fromTo(
+          bar,
+          { width: '0%' },
+          {
+            width: targetWidth,
+            duration: 1.3,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: bar,
+              start: 'top 90%',
             },
           }
         );
@@ -237,9 +247,6 @@ export const HomeExperience: React.FC = () => {
     window.open(buildFlamingoWhatsAppUrl(0, msg), '_blank', 'noopener,noreferrer');
   };
 
-  const defaultRooms = HOUSE_MODELS[0].rooms360;
-  const activeRoom = defaultRooms[activePanoRoomIdx] || defaultRooms[0];
-
   return (
     <div
       id="top"
@@ -263,7 +270,7 @@ export const HomeExperience: React.FC = () => {
 
       {/* =====================================================================
           SECCIÓN 2: MANIFIESTO EDITORIAL EN VERDE OLIVA ORGÁNICO (#515B1B)
-          (Inspirado directamente en docs/brand/tipografia-marca.png)
+          CON INDICADORES ANIMADOS DE EJECUCIÓN INMOBILIARIA
          ===================================================================== */}
       <section className="relative py-20 sm:py-28 px-6 sm:px-12 lg:px-20 bg-[#515B1B] text-[#F5F1FA]">
         <div className="max-w-7xl mx-auto space-y-14">
@@ -291,9 +298,9 @@ export const HomeExperience: React.FC = () => {
             </div>
           </div>
 
-          {/* 4 Pilares de Valor de Preventa */}
+          {/* 4 Pilares de Valor de Preventa con barras de progreso animadas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 gsap-editorial-reveal">
-            <div className="rounded-3xl bg-[#23112B]/35 border border-[#F5F1FA]/20 p-7 space-y-3 backdrop-blur-sm">
+            <div className="group rounded-3xl bg-[#23112B]/35 hover:bg-[#23112B]/55 border border-[#F5F1FA]/20 hover:border-[#F48FB1]/50 p-7 space-y-3 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1">
               <span className="font-geista text-4xl sm:text-5xl text-[#F48FB1] block">
                 160 & 200 m²
               </span>
@@ -301,12 +308,23 @@ export const HomeExperience: React.FC = () => {
                 Metrajes Residenciales
               </h3>
               <p className="text-xs sm:text-sm text-[#F5F1FA]/80 leading-relaxed">
-                Lotes amplios de frente generoso ideales para vivienda familiar con jardín, terraza
-                o proyecto de alta rentabilidad.
+                Lotes amplios de 8m×20m y 10m×20m ideales para vivienda familiar con jardín,
+                terraza o inversión de alta plusvalía.
               </p>
+              <div className="pt-2">
+                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    data-width="100%"
+                    className="gsap-progress-fill h-full rounded-full bg-[#EE6B96]"
+                  />
+                </div>
+                <span className="mt-1.5 block text-[10px] uppercase tracking-widest text-[#F48FB1]">
+                  Hitos Replanteados en Campo
+                </span>
+              </div>
             </div>
 
-            <div className="rounded-3xl bg-[#23112B]/35 border border-[#F5F1FA]/20 p-7 space-y-3 backdrop-blur-sm">
+            <div className="group rounded-3xl bg-[#23112B]/35 hover:bg-[#23112B]/55 border border-[#F5F1FA]/20 hover:border-[#F48FB1]/50 p-7 space-y-3 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1">
               <span className="font-geista text-4xl sm:text-5xl text-white block">100%</span>
               <h3 className="font-dm font-bold text-base uppercase tracking-wider text-white">
                 Título de Propiedad
@@ -315,39 +333,78 @@ export const HomeExperience: React.FC = () => {
                 Seguridad jurídica garantizada y documentación lista para transferencia y{' '}
                 <strong>entrega inmediata</strong>.
               </p>
+              <div className="pt-2">
+                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    data-width="100%"
+                    className="gsap-progress-fill h-full rounded-full bg-emerald-400"
+                  />
+                </div>
+                <span className="mt-1.5 block text-[10px] uppercase tracking-widest text-emerald-300">
+                  Saneamiento Legal Verificado
+                </span>
+              </div>
             </div>
 
-            <div className="rounded-3xl bg-[#23112B]/35 border border-[#F5F1FA]/20 p-7 space-y-3 backdrop-blur-sm">
+            <div className="group rounded-3xl bg-[#23112B]/35 hover:bg-[#23112B]/55 border border-[#F5F1FA]/20 hover:border-[#F48FB1]/50 p-7 space-y-3 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1">
               <span className="font-geista text-4xl sm:text-5xl text-[#F48FB1] block">3 / 3</span>
               <h3 className="font-dm font-bold text-base uppercase tracking-wider text-white">
                 Servicios Completos
               </h3>
               <p className="text-xs sm:text-sm text-[#F5F1FA]/80 leading-relaxed">
-                Habilitación integral con redes de <strong>Agua</strong>, <strong>Desagüe</strong> y{' '}
-                <strong>Alumbrado Público LED</strong>.
+                Habilitación integral con cajas de <strong>Agua</strong>, buzones de{' '}
+                <strong>Desagüe</strong> y <strong>Alumbrado Público</strong>.
               </p>
+              <div className="pt-2">
+                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    data-width="100%"
+                    className="gsap-progress-fill h-full rounded-full bg-[#EE6B96]"
+                  />
+                </div>
+                <span className="mt-1.5 block text-[10px] uppercase tracking-widest text-[#F48FB1]">
+                  Redes Ejecutadas en Terreno
+                </span>
+              </div>
             </div>
 
-            <div className="rounded-3xl bg-[#23112B]/35 border border-[#F5F1FA]/20 p-7 space-y-3 backdrop-blur-sm">
+            <div className="group rounded-3xl bg-[#23112B]/35 hover:bg-[#23112B]/55 border border-[#F5F1FA]/20 hover:border-[#F48FB1]/50 p-7 space-y-3 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1">
               <span className="font-geista text-4xl sm:text-5xl text-white block">30 m</span>
               <h3 className="font-dm font-bold text-base uppercase tracking-wider text-white">
                 Colegio Virgen Dolorosa
               </h3>
               <p className="text-xs sm:text-sm text-[#F5F1FA]/80 leading-relaxed">
-                Ubicación consolidada a pasos del Colegio Virgen Dolorosa y con acceso directo por
-                vía principal.
+                Ubicación consolidada frente al Colegio Virgen Dolorosa con pórtico de ingreso ya
+                construido.
               </p>
+              <div className="pt-2">
+                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    data-width="100%"
+                    className="gsap-progress-fill h-full rounded-full bg-emerald-400"
+                  />
+                </div>
+                <span className="mt-1.5 block text-[10px] uppercase tracking-widest text-emerald-300">
+                  Acceso Directo Consolidado
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* =====================================================================
+          SECCIÓN 2.5: AVANCE REAL EN TERRENO VS. VISIÓN CONSOLIDADA
+          (Fotografías reales de Google Drive + Comparador + 3 Videos Gemini)
+         ===================================================================== */}
+      <RealProjectShowcase />
+
+      {/* =====================================================================
           SECCIÓN 3: PLANO INTERACTIVO DE LOTES (160 m² y 200 m²)
          ===================================================================== */}
       <section
         id="plano-lotes"
-        className="relative py-20 sm:py-28 px-6 sm:px-12 lg:px-20 bg-[#EAE3F2] text-[#361D42]"
+        className="relative py-20 sm:py-28 px-6 sm:px-12 lg:px-20 bg-[#F5F1FA] text-[#361D42]"
       >
         <div className="max-w-7xl mx-auto space-y-10">
           <div className="flex flex-wrap items-end justify-between gap-6 gsap-editorial-reveal">
@@ -381,7 +438,7 @@ export const HomeExperience: React.FC = () => {
                   className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-dm font-bold uppercase tracking-wider transition-all cursor-pointer border ${
                     lotFilterArea === btn.value
                       ? 'bg-[#361D42] text-[#F5F1FA] border-[#361D42] shadow-lg'
-                      : 'bg-[#F5F1FA] text-[#361D42] border-[#361D42]/30 hover:border-[#361D42]'
+                      : 'bg-white text-[#361D42] border-[#361D42]/30 hover:border-[#361D42]'
                   }`}
                 >
                   {btn.label}
@@ -398,7 +455,7 @@ export const HomeExperience: React.FC = () => {
             </div>
           </div>
 
-          {/* Grid: Visor Aéreo con Polígonos Interactivos + Ficha Técnica de Reserva */}
+          {/* Grid: Visor Aéreo con Polígonos Interactivos + Ficha Técnica Acotada */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch gsap-editorial-reveal">
             {/* Visor Aéreo SVG de Lotes (8 columnas) */}
             <div className="lg:col-span-8 w-full min-w-0 relative rounded-3xl overflow-hidden border-2 border-[#361D42]/20 shadow-2xl bg-[#23112B] min-h-[360px] sm:min-h-[480px]">
@@ -415,7 +472,6 @@ export const HomeExperience: React.FC = () => {
                 preserveAspectRatio="xMidYMid slice"
                 className="absolute inset-0 w-full h-full"
               >
-                {/* Contorno general de la urbanización */}
                 <polygon
                   points="422,592 1035,484 1438,538 1228,748 764,658"
                   fill="none"
@@ -493,9 +549,9 @@ export const HomeExperience: React.FC = () => {
               </div>
             </div>
 
-            {/* Tarjeta de Detalle del Lote Seleccionado (4 columnas) */}
+            {/* Tarjeta de Detalle del Lote Seleccionado + Esquema Acotado CAD (4 columnas) */}
             <div className="lg:col-span-4 w-full min-w-0 relative z-10 rounded-3xl bg-[#361D42] text-[#F5F1FA] p-7 sm:p-8 flex flex-col justify-between shadow-2xl border border-[#F48FB1]/30">
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   <span className="px-3.5 py-1 rounded-full bg-[#EE6B96]/25 border border-[#EE6B96]/50 text-[#F48FB1] text-xs font-dm font-bold uppercase tracking-wider">
                     {selectedLot.block}
@@ -520,23 +576,48 @@ export const HomeExperience: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div className="p-4 rounded-2xl bg-[#23112B]/70 border border-white/10">
-                    <span className="text-[11px] uppercase tracking-wider text-[#F48FB1] block">
-                      Área Total
+                {/* Esquema Geométrico Acotado en Vivo (8m x 20m o 10m x 20m) */}
+                <div className="rounded-2xl bg-[#23112B]/80 border border-white/10 p-4 flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-[#F48FB1] block">
+                      Plano Acotado del Lote
                     </span>
-                    <span className="font-geista text-3xl text-white tabular-nums">
+                    <span className="font-geista text-3xl text-white block">
                       {selectedLot.areaSqm} m²
                     </span>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-[#23112B]/70 border border-white/10">
-                    <span className="text-[11px] uppercase tracking-wider text-[#F48FB1] block">
-                      Dimensiones
-                    </span>
-                    <span className="font-geista text-2xl text-white tabular-nums">
-                      {selectedLot.frontM}m × {selectedLot.depthM}m
+                    <span className="text-xs text-[#EAE3F2]/75 block">
+                      Frente: <strong>{selectedLot.frontM}.00 m</strong> · Fondo:{' '}
+                      <strong>{selectedLot.depthM}.00 m</strong>
                     </span>
                   </div>
+
+                  {/* Mini SVG Blueprint del lote */}
+                  <svg viewBox="0 0 120 80" className="w-28 h-20 shrink-0">
+                    <rect
+                      x={selectedLot.areaSqm === 200 ? 18 : 26}
+                      y="12"
+                      width={selectedLot.areaSqm === 200 ? 84 : 68}
+                      height="52"
+                      rx="4"
+                      fill="rgba(238,107,150,0.18)"
+                      stroke="#EE6B96"
+                      strokeWidth="2"
+                      strokeDasharray="4 2"
+                    />
+                    <text
+                      x="60"
+                      y="41"
+                      textAnchor="middle"
+                      fill="#FFFFFF"
+                      fontSize="11"
+                      fontWeight="bold"
+                    >
+                      {selectedLot.areaSqm} m²
+                    </text>
+                    <text x="60" y="76" textAnchor="middle" fill="#F48FB1" fontSize="9">
+                      Frente {selectedLot.frontM}m
+                    </text>
+                  </svg>
                 </div>
 
                 <ul className="space-y-2 text-xs sm:text-sm text-[#EAE3F2]/90 pt-1">
@@ -555,7 +636,7 @@ export const HomeExperience: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="space-y-2.5 pt-6">
+              <div className="space-y-2.5 pt-5">
                 <a
                   href={buildFlamingoWhatsAppUrl(
                     0,
@@ -588,135 +669,99 @@ export const HomeExperience: React.FC = () => {
       </section>
 
       {/* =====================================================================
-          SECCIÓN 4: RECORRIDO VIRTUAL 360° EMBEBIDO & PROYECCIÓN RESIDENCIAL
+          SECCIÓN 4: VISTAS AÉREAS 360° REALES DEL PROYECTO (DESDE GOOGLE DRIVE)
+          + MODELOS ARQUITECTÓNICOS DE REFERENCIA
          ===================================================================== */}
       <section
         id="recorrido-360"
-        className="relative py-20 sm:py-28 px-6 sm:px-12 lg:px-20 bg-[#F5F1FA] text-[#361D42]"
+        className="relative py-20 sm:py-28 px-6 sm:px-12 lg:px-20 bg-[#EAE3F2] text-[#361D42]"
       >
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="flex flex-wrap items-end justify-between gap-6 gsap-editorial-reveal">
             <div className="space-y-2 max-w-2xl">
               <span className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-[#361D42] text-xs font-dm font-medium uppercase tracking-[0.24em]">
                 <Rotate3D size={14} className="text-[#EE6B96]" />
-                <span>EXPERIENCIA INMERSIVA EQUIRECTANGULAR</span>
+                <span>CAPTURAS ESFÉRICAS 360° REALES EN TERRENO</span>
               </span>
               <h2 className="font-geista text-4xl sm:text-5xl lg:text-6xl uppercase tracking-wide text-[#361D42]">
-                Recorrido Virtual 360°
+                Vistas Aéreas 360° del Proyecto
               </h2>
               <p className="text-sm sm:text-base text-[#361D42]/80 font-dm">
-                Explora la proyección arquitectónica en 360° de las viviendas que puedes construir
-                en tu lote de <strong>160 m²</strong> o <strong>200 m²</strong> en Flamingo
-                Residencial, o ingresa al Showroom Aéreo 360° a pantalla completa.
+                Explora libremente las <strong>8 panorámicas aéreas 360° reales</strong> capturadas
+                con dron sobre <strong>Flamingo Residencial</strong>, el pórtico de ingreso y su
+                cercanía a 30 metros del Colegio Virgen Dolorosa.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              {defaultRooms.map((room, idx) => (
-                <button
-                  key={room.id}
-                  type="button"
-                  onClick={() => setActivePanoRoomIdx(idx)}
-                  className={`px-4 py-2.5 rounded-full text-xs font-dm font-bold uppercase tracking-wider transition-all cursor-pointer border ${
-                    activePanoRoomIdx === idx
-                      ? 'bg-[#361D42] text-[#F5F1FA] border-[#361D42]'
-                      : 'bg-white text-[#361D42] border-[#361D42]/25 hover:border-[#361D42]'
-                  }`}
-                >
-                  {room.name}
-                </button>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => setFullscreen360Open(true)}
-                className="px-4 py-2.5 rounded-full bg-[#EE6B96] text-white text-xs font-dm font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-md"
-              >
-                <Maximize2 size={14} />
-                <span>Expandir 360°</span>
-              </button>
-            </div>
+            <a
+              href="/showroom?step=intro"
+              className="px-6 py-3 rounded-full bg-[#361D42] hover:bg-[#EE6B96] text-white font-dm font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg"
+            >
+              <Compass size={16} />
+              <span>Abrir Showroom Virtual Completo</span>
+            </a>
           </div>
 
-          {/* Contenedor Embebido del Visor 360° */}
-          <div className="relative w-full h-[420px] sm:h-[520px] rounded-3xl overflow-hidden border-2 border-[#361D42]/20 shadow-2xl bg-[#23112B] gsap-editorial-reveal">
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-cover bg-center" style={{ backgroundImage: `url('/flow-frames/last-frame.jpg')` }}>
-              <div className="absolute inset-0 bg-[#23112B]/70 backdrop-blur-[2px]" />
-              <div className="relative z-10 max-w-xl space-y-5">
-                <div className="w-16 h-16 rounded-full bg-[#EE6B96]/25 border-2 border-[#EE6B96] flex items-center justify-center mx-auto text-[#F48FB1]">
-                  <Rotate3D size={32} />
-                </div>
-                <span className="inline-block px-4 py-1 rounded-full bg-white/10 border border-white/20 text-[#F48FB1] text-xs font-dm uppercase tracking-[0.2em]">
-                  Ambiente Seleccionado: {activeRoom.name}
-                </span>
-                <h3 className="font-geista text-3xl sm:text-5xl text-white uppercase">
-                  Explora en 360° Interactivo
-                </h3>
-                <p className="text-xs sm:text-sm text-[#EAE3F2]/85 leading-relaxed">
-                  Gira la cámara en 360 grados con WebGL o abre el Showroom Aéreo completo con
-                  comparador Día / Noche y los 4 modelos arquitectónicos.
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setFullscreen360Open(true)}
-                    className="px-7 py-3.5 rounded-full bg-[#EE6B96] hover:bg-[#F48FB1] text-[#23112B] font-dm font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 shadow-xl transition-transform hover:scale-105 cursor-pointer"
-                  >
-                    <Rotate3D size={17} />
-                    <span>Iniciar Visor 360° Aquí</span>
-                  </button>
-                  <a
-                    href="/showroom?step=intro"
-                    className="px-7 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white font-dm font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 transition-all"
-                  >
-                    <Compass size={17} />
-                    <span>Ir al Showroom Aéreo Completo</span>
-                  </a>
-                </div>
-              </div>
-            </div>
+          {/* Visor 360° Directo con las 8 fotos reales de Google Drive */}
+          <div className="gsap-editorial-reveal">
+            <Real360AerialViewer />
           </div>
 
           {/* Tarjetas de los 4 Modelos de Casa proyectados para lotes de 160m² y 200m² */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 gsap-editorial-reveal">
-            {HOUSE_MODELS.map((model) => (
-              <div
-                key={model.id}
-                className="group rounded-3xl overflow-hidden bg-white border border-[#361D42]/15 hover:border-[#EE6B96] shadow-lg flex flex-col justify-between transition-all"
-              >
-                <div>
-                  <div className="relative h-48 overflow-hidden bg-[#361D42]">
-                    <img
-                      src={model.exteriors.frontal}
-                      alt={model.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#361D42]/90 text-[#F5F1FA] text-[10px] font-dm font-bold uppercase tracking-wider">
-                      {model.badge}
-                    </span>
-                  </div>
-                  <div className="p-5 space-y-2">
-                    <span className="text-[11px] font-dm font-bold uppercase tracking-widest text-[#EE6B96]">
-                      {model.builtAreaSqm} m² Techados · Compatible 160/200 m²
-                    </span>
-                    <h3 className="font-geista text-2xl text-[#361D42] uppercase">{model.name}</h3>
-                    <p className="text-xs text-[#361D42]/75 line-clamp-2 leading-relaxed">
-                      {model.description}
-                    </p>
-                  </div>
-                </div>
-                <div className="p-5 pt-0">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedModel(model)}
-                    className="w-full py-2.5 rounded-full bg-[#361D42] hover:bg-[#EE6B96] text-white text-xs font-dm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                  >
-                    <Rotate3D size={14} />
-                    <span>Ver Planos & Tour 360°</span>
-                  </button>
-                </div>
+          <div className="pt-4 space-y-6 gsap-editorial-reveal">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#515B1B]">
+                  Inspiración Residencial
+                </span>
+                <h3 className="font-geista text-3xl sm:text-4xl text-[#361D42] uppercase mt-1">
+                  Modelos de Vivienda Compatibles con 160 m² y 200 m²
+                </h3>
               </div>
-            ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {HOUSE_MODELS.map((model) => (
+                <div
+                  key={model.id}
+                  className="group rounded-3xl overflow-hidden bg-[#F5F1FA] border border-[#361D42]/15 hover:border-[#EE6B96] shadow-lg flex flex-col justify-between transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div>
+                    <div className="relative h-48 overflow-hidden bg-[#361D42]">
+                      <img
+                        src={model.exteriors.frontal}
+                        alt={model.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#361D42]/90 text-[#F5F1FA] text-[10px] font-dm font-bold uppercase tracking-wider">
+                        {model.badge}
+                      </span>
+                    </div>
+                    <div className="p-5 space-y-2">
+                      <span className="text-[11px] font-dm font-bold uppercase tracking-widest text-[#EE6B96]">
+                        {model.builtAreaSqm} m² Techados · Compatible 160/200 m²
+                      </span>
+                      <h3 className="font-geista text-2xl text-[#361D42] uppercase">
+                        {model.name}
+                      </h3>
+                      <p className="text-xs text-[#361D42]/75 line-clamp-2 leading-relaxed">
+                        {model.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-5 pt-0">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedModel(model)}
+                      className="w-full py-2.5 rounded-full bg-[#361D42] hover:bg-[#EE6B96] text-white text-xs font-dm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <Rotate3D size={14} />
+                      <span>Ver Planos de Referencia</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -885,16 +930,6 @@ export const HomeExperience: React.FC = () => {
           onSelectModel={(id) =>
             setSelectedModel(HOUSE_MODELS.find((m) => m.id === id) || selectedModel)
           }
-        />
-      )}
-
-      {/* Modal Fullscreen 360° */}
-      {fullscreen360Open && (
-        <Panorama360Viewer
-          rooms={defaultRooms}
-          initialRoomId={activeRoom.id}
-          modelName="Flamingo Residencial · Proyección 360°"
-          onClose={() => setFullscreen360Open(false)}
         />
       )}
     </div>
