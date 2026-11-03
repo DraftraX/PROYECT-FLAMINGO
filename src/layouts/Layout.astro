@@ -8,8 +8,8 @@ interface Props {
 }
 
 const {
-  title = 'Inmobiliaria Flamingo — Proyecto Residencial Flamingo | Showroom Virtual 360°',
-  description = 'Conoce Residencial Flamingo en Tumbes: explora el plano oficial de lotización y un recorrido conceptual 360° de interiores.',
+  title = 'Flamingo Residencial — Preventa de Lotes de 160 m² y 200 m² | Entrega Inmediata',
+  description = 'Aprovecha la preventa de Flamingo Residencial: Lotes de 160 m² y 200 m² con título de propiedad, agua, desagüe, alumbrado público y entrega inmediata. A solo 30 metros del Colegio Virgen Dolorosa.',
   lockViewport = false,
 } = Astro.props;
 ---
@@ -21,9 +21,20 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href="/logos/flamingo-logo.svg" />
+    <link rel="icon" type="image/png" href="/brand/logo-flamingo.png" />
+    <link
+      rel="preload"
+      href="/fonts/GeistaMond-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
   </head>
-  <body class={lockViewport ? 'lock-viewport bg-neutral-950 text-white' : 'bg-neutral-950 text-white'}>
+  <body
+    class={lockViewport
+      ? 'lock-viewport bg-[#0c1428] text-white'
+      : 'bg-[#EAE3F2] text-[#361D42] font-dm selection:bg-[#EE6B96]/25 selection:text-[#361D42]'}
+  >
     <slot />
   </body>
 </html>

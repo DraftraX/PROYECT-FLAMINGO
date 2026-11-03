@@ -1,4 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap');
+
+@font-face {
+  font-family: 'Geista Mond';
+  src: url('/fonts/GeistaMond-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -6,20 +14,52 @@
 
 :root {
   --app-h: 100dvh;
-  --color-brand-orange: #d69135;
-  --color-brand-dark-orange: #b0752a;
-  --color-brand-light-orange: #e5ab5e;
-  --color-brand-primary: #233d78;
-  --color-ocean-700: #233d78;
-  --color-ocean-800: #1b2f5c;
-  --color-ocean-900: #14213f;
-  --color-ocean-950: #0c1428;
-  --font-primary: 'Montserrat', sans-serif;
-  --font-secondary: 'Inter', sans-serif;
+
+  /* Paleta Cromática Editorial — Flamingo Residencial */
+  --color-lavender-silk: #EAE3F2;
+  --color-lavender-light: #F5F1FA;
+  --color-plum-deep: #361D42;
+  --color-plum-dark: #23112B;
+  --color-flamingo-pink: #EE6B96;
+  --color-flamingo-soft: #F48FB1;
+  --color-olive-organic: #515B1B;
+
+  /* Tokens heredados para compatibilidad con el visor /showroom */
+  --color-brand-orange: #EE6B96;
+  --color-brand-dark-orange: #361D42;
+  --color-brand-light-orange: #F48FB1;
+  --color-brand-primary: #361D42;
+  --color-ocean-700: #361D42;
+  --color-ocean-800: #23112B;
+  --color-ocean-900: #23112B;
+  --color-ocean-950: #160A1C;
+
+  /* Sistema Tipográfico Estricto */
+  --font-editorial: 'Geista Mond', 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-primary: 'Geista Mond', 'Cormorant Garamond', Georgia, serif;
+  --font-secondary: 'DM Sans', sans-serif;
 }
 
 .h-app {
   height: var(--app-h);
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 html,
@@ -27,20 +67,47 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: #0a0a0a;
-  color: #ffffff;
+  font-family: var(--font-body);
+  background-color: var(--color-lavender-silk);
+  color: var(--color-plum-deep);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body.lock-viewport {
   height: 100dvh;
   overflow: hidden;
+  background-color: #0c1428;
+  color: #ffffff;
+}
+
+.font-geista {
+  font-family: var(--font-editorial);
+}
+
+.font-dm {
+  font-family: var(--font-body);
+}
+
+/* Píldora editorial estilo Flyer Preventa */
+.flamingo-pill-outline {
+  border: 1.5px solid #361D42;
+  border-radius: 9999px;
+  background: rgba(245, 241, 250, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+/* Cápsulas de servicio estilo Flyer Preventa (#361D42 Ciruela Profundo) */
+.flamingo-service-pill {
+  background: rgba(54, 29, 66, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(244, 143, 177, 0.35);
+  box-shadow: 0 18px 42px -10px rgba(35, 17, 43, 0.42);
 }
 
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgba(214, 145, 53, 0.5) transparent;
+  scrollbar-color: rgba(238, 107, 150, 0.5) transparent;
 }
 .scrollbar-thin::-webkit-scrollbar {
   width: 5px;
@@ -50,11 +117,11 @@ body.lock-viewport {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: rgba(214, 145, 53, 0.5);
+  background-color: rgba(238, 107, 150, 0.5);
   border-radius: 9999px;
 }
 
-/* Detalles arquitectónicos del menú y botones estilo Olimpo / Flamingo */
+/* Detalles arquitectónicos del menú y botones en /showroom */
 .olympus-btn {
   z-index: 1;
   position: relative !important;
@@ -66,9 +133,9 @@ body.lock-viewport {
   z-index: -1;
   background: linear-gradient(
     to top,
-    var(--color-brand-orange) 0%,
-    rgba(214, 145, 53, 0.35) 55%,
-    rgba(214, 145, 53, 0) 100%
+    var(--color-flamingo-pink) 0%,
+    rgba(238, 107, 150, 0.35) 55%,
+    rgba(238, 107, 150, 0) 100%
   );
   opacity: 0.55;
   width: 100%;
@@ -86,7 +153,7 @@ body.lock-viewport {
 
 .olympus-fret {
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='16'%3E%3Cg fill='none' stroke='%23D69135' stroke-width='1.7' stroke-linecap='square'%3E%3Cpath d='M0 14.6 H34'/%3E%3Cpath d='M5 14.6 V4 H27 V11 H13 V7.6 H20'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='16'%3E%3Cg fill='none' stroke='%23EE6B96' stroke-width='1.7' stroke-linecap='square'%3E%3Cpath d='M0 14.6 H34'/%3E%3Cpath d='M5 14.6 V4 H27 V11 H13 V7.6 H20'/%3E%3C/g%3E%3C/svg%3E");
   background-position: 0 100%;
   background-repeat: repeat-x;
   background-size: 34px 16px;
@@ -95,10 +162,10 @@ body.lock-viewport {
 .olympus-cornice {
   background: linear-gradient(
     to bottom,
-    var(--color-brand-orange) 0px,
-    var(--color-brand-orange) 2px,
-    rgba(214, 145, 53, 0.35) 3px,
-    rgba(214, 145, 53, 0) 5px
+    var(--color-flamingo-pink) 0px,
+    var(--color-flamingo-pink) 2px,
+    rgba(238, 107, 150, 0.35) 3px,
+    rgba(238, 107, 150, 0) 5px
   );
   pointer-events: none;
 }
