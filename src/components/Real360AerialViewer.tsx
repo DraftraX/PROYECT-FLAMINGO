@@ -112,6 +112,18 @@ export const Real360AerialViewer: React.FC = () => {
     const host = canvasHostRef.current;
     if (!host) return;
 
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: false,
+        powerPreference: 'high-performance',
+      });
+    } catch {
+      setIsLoading(false);
+      return;
+    }
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       fovRef.current,
@@ -119,7 +131,7 @@ export const Real360AerialViewer: React.FC = () => {
       0.1,
       1100
     );
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(host.clientWidth, host.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -169,7 +181,9 @@ export const Real360AerialViewer: React.FC = () => {
       sphereRef.current?.geometry.dispose();
       (sphereRef.current?.material as THREE.Material | undefined)?.dispose();
       renderer.dispose();
-      renderer.domElement.remove();
+      if (renderer.domElement.parentNode === host) {
+        host.removeChild(renderer.domElement);
+      }
     };
   }, []);
 
@@ -284,18 +298,21 @@ export const Real360AerialViewer: React.FC = () => {
           }`}
         />
 
-        {isLoading && (
-          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-[#23112B]/40 backdrop-blur-sm">
-            <span className="font-dm text-xs uppercase tracking-[0.25em] text-white">
-              Cargando vista 360°...
-            </span>
-          </div>
-        )}
+        {/* Persistent Loading Overlay (CSS opacity to prevent DOM insertBefore / removeChild issues) */}
+        <div
+          className={`pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-[#23112B]/40 backdrop-blur-sm transition-opacity duration-200 ${
+            isLoading ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <span className="font-dm text-xs uppercase tracking-[0.25em] text-white">
+            Cargando vista 360°...
+          </span>
+        </div>
 
         {/* Minimalist Top-Left Caption */}
         <div className="pointer-events-none absolute left-6 top-6 z-10 bg-white/92 backdrop-blur-md px-5 py-3 text-[#361D42]">
           <span className="block font-dm text-[10px] font-bold uppercase tracking-[0.24em] text-[#515B1B]">
-            {currentPano.code} · ARRASTRA PARA GIRAR EN 360°
+            {`${currentPano.code} · ARRASTRA PARA GIRAR EN 360°`}
           </span>
           <p className="font-geista text-xl sm:text-2xl text-[#361D42] mt-0.5">
             {currentPano.title}

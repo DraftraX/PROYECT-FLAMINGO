@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { FLAMINGO_BRAND } from '../config/flamingo';
+import { buildFlamingoWhatsAppUrl, FLAMINGO_BRAND } from '../config/flamingo';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,6 +25,7 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
   const imagesRef = useRef<(HTMLImageElement | null)[]>(new Array(TOTAL_FRAMES).fill(null));
   const currentFrameRef = useRef<number>(1);
   const rafDrawRef = useRef<number | null>(null);
+  const phaseIdxRef = useRef<number>(0);
 
   const [activePhaseIdx, setActivePhaseIdx] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
@@ -163,8 +164,6 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
     const pinStage = pinStageRef.current;
     if (!section || !pinStage) return;
 
-    const state = { progress: 0 };
-
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: section,
@@ -175,7 +174,6 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
         anticipatePin: 1,
         onUpdate: (self) => {
           const p = self.progress;
-          state.progress = p;
 
           // Map 0%..84% scroll to frames 1..150 so the full construction finishes before the closing curtain
           const frameProgress = Math.min(1, p / 0.84);
@@ -223,10 +221,11 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
             midCaptionRef.current.style.opacity = String(Math.max(0, Math.min(1, midOpacity)).toFixed(3));
           }
 
-          if (p < 0.36) setActivePhaseIdx(0);
-          else if (p < 0.54) setActivePhaseIdx(1);
-          else if (p < 0.7) setActivePhaseIdx(2);
-          else setActivePhaseIdx(3);
+          const nextPhaseIdx = p < 0.36 ? 0 : p < 0.54 ? 1 : p < 0.7 ? 2 : 3;
+          if (nextPhaseIdx !== phaseIdxRef.current) {
+            phaseIdxRef.current = nextPhaseIdx;
+            setActivePhaseIdx(nextPhaseIdx);
+          }
 
           // 4. PeruBuilds Closing Statement Curtain (82%..100%)
           if (outroCurtainRef.current) {
@@ -265,9 +264,11 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
   const activePhase = PHASES[activePhaseIdx] || PHASES[0];
 
   return (
-    <section ref={sectionRef} className="relative w-full bg-[#23112B] select-none">
+    <div className="relative w-full bg-[#23112B] select-none">
       {/* =====================================================================
           FIXED TOP ARCHITECTURAL NAVBAR + VERTICAL "HABLEMOS" TAB (PERUBUILDS)
+          Kept outside <section ref={sectionRef}> so GSAP pin-spacer never
+          conflicts with React sibling DOM nodes.
          ===================================================================== */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between pointer-events-none">
         <div className="flex items-center">
@@ -287,16 +288,28 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
           <button
             type="button"
             onClick={() => setMobileMenuOpen((v) => !v)}
-            aria-label="Abrir menú de navegación"
+            aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            aria-expanded={mobileMenuOpen}
             className="pointer-events-auto flex h-20 w-20 flex-col items-center justify-center gap-1.5 bg-[#190B20] text-white transition-colors hover:bg-[#EE6B96] hover:text-[#23112B] cursor-pointer"
           >
-            <span className="h-0.5 w-6 bg-current transition-transform" />
-            <span className="h-0.5 w-6 bg-current transition-transform" />
+            <span
+              className={`h-0.5 w-6 bg-current transition-transform duration-200 ${
+                mobileMenuOpen ? 'translate-y-1 rotate-45' : ''
+              }`}
+            />
+            <span
+              className={`h-0.5 w-6 bg-current transition-transform duration-200 ${
+                mobileMenuOpen ? '-translate-y-1 -rotate-45' : ''
+              }`}
+            />
           </button>
 
           {/* Clean Horizontal Text Links (visible inside Hero, just like PeruBuilds) */}
           <nav
-            style={{ opacity: activePhaseIdx === 0 ? 1 : 0, pointerEvents: activePhaseIdx === 0 ? 'auto' : 'none' }}
+            style={{
+              opacity: activePhaseIdx === 0 && !mobileMenuOpen ? 1 : 0,
+              pointerEvents: activePhaseIdx === 0 && !mobileMenuOpen ? 'auto' : 'none',
+            }}
             className="hidden lg:flex items-center gap-9 pl-10 transition-opacity duration-300"
           >
             {navItems.map((item) => (
@@ -322,163 +335,202 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
         </button>
       </header>
 
-      {/* Mobile / Full Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#23112B]/98 backdrop-blur-xl flex flex-col justify-center px-10 sm:px-20">
-          <div className="max-w-4xl space-y-6">
-            <p className="font-dm text-xs uppercase tracking-[0.3em] text-[#EE6B96]">
-              Flamingo Residencial · Navegación
-            </p>
-            <div className="flex flex-col items-start gap-4">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleNavClick(item.id)}
-                  className="font-geista text-4xl sm:text-6xl text-white hover:text-[#EE6B96] transition-colors text-left cursor-pointer"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <div className="pt-8 border-t border-white/15 flex flex-wrap gap-8 text-sm text-[#EAE3F2]/80 font-dm">
-              <span>Lotes de 160 m² y 200 m²</span>
-              <span>A 30m del Colegio Virgen Dolorosa</span>
-              <span>940 152 191 · 942 710 250</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =====================================================================
-          PINNED 100VH STAGE
-         ===================================================================== */}
-      <div ref={pinStageRef} className="relative w-full h-screen overflow-hidden bg-[#23112B]">
-        {/* Full-bleed Canvas Sequence (150 frames .webp) */}
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
-
-        {/* Subtle Dark Vignette for Typographic Legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#23112B]/65 via-[#23112B]/25 to-transparent pointer-events-none" />
-
-        {/* ===================================================================
-            LAYER 1: PERUBUILDS GEOMETRIC FROSTED PORTAL (scales out on scroll)
-           =================================================================== */}
-        <div
-          ref={portalOverlayRef}
-          className="absolute inset-0 z-10 pointer-events-none origin-center will-change-transform"
-        >
-          {/* Left Frosted Chevron Wing */}
-          <div
-            className="absolute inset-0 bg-[#361D42]/45 backdrop-blur-[6px]"
-            style={{
-              clipPath: 'polygon(0% 0%, 16% 0%, 56% 68%, 34% 100%, 0% 100%)',
-            }}
-          />
-          {/* Top-Right Frosted Triangle */}
-          <div
-            className="absolute inset-0 bg-[#EAE3F2]/20 backdrop-blur-[5px]"
-            style={{
-              clipPath: 'polygon(52% 0%, 96% 0%, 75% 38%)',
-            }}
-          />
-        </div>
-
-        {/* ===================================================================
-            LAYER 2: CLEAN LEFT-ALIGNED EDITORIAL HERO COPY (PeruBuilds style)
-           =================================================================== */}
-        <div
-          ref={heroCopyRef}
-          className="relative z-20 h-full max-w-7xl mx-auto px-6 sm:px-14 lg:px-20 flex flex-col justify-center pointer-events-none will-change-transform"
-        >
-          <div className="max-w-3xl space-y-8 pt-12">
-            <h1 className="font-dm font-bold text-4xl sm:text-6xl lg:text-[4.35rem] text-white leading-[1.05] tracking-tight drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">
-              Lotes residenciales,
-              <br />
-              título propio y
-              <br />
-              <span className="font-geista font-normal italic text-[#F48FB1]">
-                entrega inmediata
-              </span>
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-x-10 gap-y-3 pt-2 font-dm text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-white/95">
-              <span>160 M² Y 200 M²</span>
-              <span>AGUA · DESAGÜE · LUZ</span>
-              <span>A 30M COLEGIO VIRGEN DOLOROSA</span>
-            </div>
-          </div>
-
-          {/* Geometric Chevron Accents (PeruBuilds signature) */}
-          <div className="hidden lg:block absolute right-28 top-1/3 text-white/90">
-            <svg width="110" height="72" viewBox="0 0 110 72" fill="none">
-              <path
-                d="M8 58L30 36L52 58L74 36L96 58"
-                stroke="currentColor"
-                strokeWidth="8"
-                strokeLinecap="square"
-              />
-              <path
-                d="M44 28L66 8L88 28"
-                stroke="#EE6B96"
-                strokeWidth="8"
-                strokeLinecap="square"
-              />
-            </svg>
-          </div>
-
-          {/* Bottom-Left Scroll Down Chevron */}
-          <div className="absolute bottom-10 left-6 sm:left-14 lg:left-20">
-            <svg width="46" height="28" viewBox="0 0 46 28" fill="none">
-              <path
-                d="M5 5L23 22L41 5"
-                stroke="#FFFFFF"
-                strokeWidth="6"
-                strokeLinecap="square"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* ===================================================================
-            LAYER 3: UNOBSTRUCTED CANVAS PHASE CAPTION (20%..80% scroll)
-           =================================================================== */}
-        <div
-          ref={midCaptionRef}
-          style={{ opacity: 0 }}
-          className="pointer-events-none absolute bottom-10 left-6 sm:left-14 lg:left-20 z-20 max-w-xl transition-opacity duration-150"
-        >
-          <div className="border-l-2 border-[#EE6B96] pl-5 py-1 bg-[#23112B]/65 backdrop-blur-md pr-6">
-            <span className="font-dm text-[11px] font-bold uppercase tracking-[0.28em] text-[#F48FB1] block">
-              ETAPA {activePhase.num} / 04 · {activePhase.label}
-            </span>
-            <p className="font-geista text-2xl sm:text-3xl text-white mt-0.5">
-              {activePhase.detail}
-            </p>
-          </div>
-        </div>
-
-        {/* ===================================================================
-            LAYER 4: PERUBUILDS CLOSING STATEMENT CURTAIN (82%..100% scroll)
-           =================================================================== */}
-        <div
-          ref={outroCurtainRef}
-          style={{ opacity: 0, pointerEvents: 'none' }}
-          className="absolute inset-0 z-30 bg-[#361D42] flex flex-col items-center justify-center px-6 text-center"
-        >
-          <img
-            src={FLAMINGO_BRAND.logos.lightText}
-            alt="Flamingo Residencial"
-            className="h-24 sm:h-28 w-auto object-contain mb-8"
-          />
-          <h2 className="font-dm font-bold text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight max-w-4xl">
-            Tu espacio, tu inversión,{' '}
-            <span className="font-geista font-normal italic text-[#F48FB1]">tu futuro</span>
-          </h2>
-          <p className="mt-4 font-dm text-xs sm:text-sm uppercase tracking-[0.26em] text-[#EAE3F2]/75">
-            Preventa Exclusiva · Lotes de 160 m² y 200 m² con Título de Propiedad
+      {/* Persistent Mobile / Full Navigation Drawer (CSS-toggled to avoid DOM insertBefore mutations) */}
+      <div
+        aria-hidden={!mobileMenuOpen}
+        className={`fixed inset-0 z-40 bg-[#23112B]/98 backdrop-blur-xl flex flex-col justify-center px-10 sm:px-20 transition-all duration-300 ${
+          mobileMenuOpen
+            ? 'opacity-100 visible pointer-events-auto'
+            : 'opacity-0 invisible pointer-events-none'
+        }`}
+      >
+        <div className="max-w-4xl space-y-6">
+          <p className="font-dm text-xs uppercase tracking-[0.3em] text-[#EE6B96]">
+            Flamingo Residencial · Navegación
           </p>
+          <div className="flex flex-col items-start gap-4">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                tabIndex={mobileMenuOpen ? 0 : -1}
+                onClick={() => handleNavClick(item.id)}
+                className="font-geista text-4xl sm:text-6xl text-white hover:text-[#EE6B96] transition-colors text-left cursor-pointer"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div className="pt-8 border-t border-white/15 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-[#EAE3F2]/85 font-dm">
+            <a
+              href={buildFlamingoWhatsAppUrl(0)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#EE6B96] transition-colors font-semibold"
+            >
+              {FLAMINGO_BRAND.contact.phoneDisplay}
+            </a>
+            <a
+              href={`mailto:${FLAMINGO_BRAND.contact.email}`}
+              className="hover:text-[#EE6B96] transition-colors"
+            >
+              {FLAMINGO_BRAND.contact.email}
+            </a>
+            <a
+              href={FLAMINGO_BRAND.contact.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#EE6B96] transition-colors"
+            >
+              Instagram ({FLAMINGO_BRAND.contact.handle})
+            </a>
+            <a
+              href={FLAMINGO_BRAND.contact.facebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#EE6B96] transition-colors"
+            >
+              Facebook Oficial
+            </a>
+          </div>
         </div>
       </div>
-    </section>
+
+      {/* =====================================================================
+          PINNED 100VH STAGE — Dedicated <section> with single child pinStageRef
+         ===================================================================== */}
+      <section
+        id="preventa-scroll-stage"
+        ref={sectionRef}
+        className="relative w-full bg-[#23112B]"
+      >
+        <div ref={pinStageRef} className="relative w-full h-screen overflow-hidden bg-[#23112B]">
+          {/* Full-bleed Canvas Sequence (150 frames .webp) */}
+          <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
+
+          {/* Subtle Dark Vignette for Typographic Legibility */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#23112B]/65 via-[#23112B]/25 to-transparent pointer-events-none" />
+
+          {/* ===================================================================
+              LAYER 1: PERUBUILDS GEOMETRIC FROSTED PORTAL (scales out on scroll)
+             =================================================================== */}
+          <div
+            ref={portalOverlayRef}
+            className="absolute inset-0 z-10 pointer-events-none origin-center will-change-transform"
+          >
+            {/* Left Frosted Chevron Wing */}
+            <div
+              className="absolute inset-0 bg-[#361D42]/45 backdrop-blur-[6px]"
+              style={{
+                clipPath: 'polygon(0% 0%, 16% 0%, 56% 68%, 34% 100%, 0% 100%)',
+              }}
+            />
+            {/* Top-Right Frosted Triangle */}
+            <div
+              className="absolute inset-0 bg-[#EAE3F2]/20 backdrop-blur-[5px]"
+              style={{
+                clipPath: 'polygon(52% 0%, 96% 0%, 75% 38%)',
+              }}
+            />
+          </div>
+
+          {/* ===================================================================
+              LAYER 2: CLEAN LEFT-ALIGNED EDITORIAL HERO COPY (PeruBuilds style)
+             =================================================================== */}
+          <div
+            ref={heroCopyRef}
+            className="relative z-20 h-full max-w-7xl mx-auto px-6 sm:px-14 lg:px-20 flex flex-col justify-center pointer-events-none will-change-transform"
+          >
+            <div className="max-w-3xl space-y-8 pt-12">
+              <h1 className="font-dm font-bold text-4xl sm:text-6xl lg:text-[4.35rem] text-white leading-[1.05] tracking-tight drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">
+                <span>Lotes residenciales,</span>
+                <br />
+                <span>título propio y</span>
+                <br />
+                <span className="font-geista font-normal italic text-[#F48FB1]">
+                  entrega inmediata
+                </span>
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-x-10 gap-y-3 pt-2 font-dm text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-white/95">
+                <span>160 M² Y 200 M²</span>
+                <span>AGUA · DESAGÜE · LUZ</span>
+                <span>A 30M COLEGIO VIRGEN DOLOROSA</span>
+              </div>
+            </div>
+
+            {/* Geometric Chevron Accents (PeruBuilds signature) */}
+            <div className="hidden lg:block absolute right-28 top-1/3 text-white/90">
+              <svg width="110" height="72" viewBox="0 0 110 72" fill="none">
+                <path
+                  d="M8 58L30 36L52 58L74 36L96 58"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  strokeLinecap="square"
+                />
+                <path
+                  d="M44 28L66 8L88 28"
+                  stroke="#EE6B96"
+                  strokeWidth="8"
+                  strokeLinecap="square"
+                />
+              </svg>
+            </div>
+
+            {/* Bottom-Left Scroll Down Chevron */}
+            <div className="absolute bottom-10 left-6 sm:left-14 lg:left-20">
+              <svg width="46" height="28" viewBox="0 0 46 28" fill="none">
+                <path
+                  d="M5 5L23 22L41 5"
+                  stroke="#FFFFFF"
+                  strokeWidth="6"
+                  strokeLinecap="square"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* ===================================================================
+              LAYER 3: UNOBSTRUCTED CANVAS PHASE CAPTION (20%..80% scroll)
+             =================================================================== */}
+          <div
+            ref={midCaptionRef}
+            style={{ opacity: 0 }}
+            className="pointer-events-none absolute bottom-10 left-6 sm:left-14 lg:left-20 z-20 max-w-xl transition-opacity duration-150"
+          >
+            <div className="border-l-2 border-[#EE6B96] pl-5 py-1 bg-[#23112B]/65 backdrop-blur-md pr-6">
+              <span className="font-dm text-[11px] font-bold uppercase tracking-[0.28em] text-[#F48FB1] block">
+                {`ETAPA ${activePhase.num} / 04 · ${activePhase.label}`}
+              </span>
+              <p className="font-geista text-2xl sm:text-3xl text-white mt-0.5">
+                {activePhase.detail}
+              </p>
+            </div>
+          </div>
+
+          {/* ===================================================================
+              LAYER 4: PERUBUILDS CLOSING STATEMENT CURTAIN (82%..100% scroll)
+             =================================================================== */}
+          <div
+            ref={outroCurtainRef}
+            style={{ opacity: 0, pointerEvents: 'none' }}
+            className="absolute inset-0 z-30 bg-[#361D42] flex flex-col items-center justify-center px-6 text-center"
+          >
+            <img
+              src={FLAMINGO_BRAND.logos.lightText}
+              alt="Flamingo Residencial"
+              className="h-24 sm:h-28 w-auto object-contain mb-8"
+            />
+            <h2 className="font-dm font-bold text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight max-w-4xl">
+              <span>{'Tu espacio, tu inversión, '}</span>
+              <span className="font-geista font-normal italic text-[#F48FB1]">tu futuro</span>
+            </h2>
+            <p className="mt-4 font-dm text-xs sm:text-sm uppercase tracking-[0.26em] text-[#EAE3F2]/75">
+              Preventa Exclusiva · Lotes de 160 m² y 200 m² con Título de Propiedad
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 };

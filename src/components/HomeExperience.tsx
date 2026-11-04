@@ -320,7 +320,10 @@ export const HomeExperience: React.FC = () => {
           </div>
 
           {/* 2-Column Masterplan + Specifications List (Selva Profunda ref_selva_03.png) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center gsap-editorial-reveal">
+          <div
+            id="plano-lotes"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center gsap-editorial-reveal"
+          >
             {/* Left 7 Columns: Clean Masterplan SVG Map */}
             <div className="lg:col-span-7 relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-[#23112B]">
               <img
@@ -365,7 +368,7 @@ export const HomeExperience: React.FC = () => {
                         fontSize="13"
                         fontWeight="bold"
                       >
-                        {lot.areaSqm}m²
+                        {`${lot.areaSqm}m²`}
                       </text>
                     </g>
                   );
@@ -376,10 +379,10 @@ export const HomeExperience: React.FC = () => {
               <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md px-5 py-3.5 rounded-xl flex flex-wrap items-center justify-between gap-3 text-[#23112B]">
                 <div>
                   <span className="font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-[#515B1B] block">
-                    {selectedLot.code} · {selectedLot.dimensions}
+                    {`${selectedLot.code} · ${selectedLot.dimensions}`}
                   </span>
                   <p className="font-dm text-sm font-bold">
-                    Lote de {selectedLot.areaSqm} m² — {selectedLot.location}
+                    {`Lote de ${selectedLot.areaSqm} m² — ${selectedLot.location}`}
                   </p>
                 </div>
                 <a
@@ -476,7 +479,7 @@ export const HomeExperience: React.FC = () => {
             <p className="font-dm text-base text-[#361D42]/80">
               Déjanos tus datos para enviarte el plano actualizado de lotes de{' '}
               <strong>160 m² y 200 m²</strong> o comunícate directamente con nuestra central de
-              preventa.
+              preventa al <strong>{FLAMINGO_BRAND.contact.phoneDisplay}</strong>.
             </p>
           </div>
 
@@ -564,6 +567,43 @@ export const HomeExperience: React.FC = () => {
               </button>
             </div>
           </form>
+
+          {/* Direct Channels Bar */}
+          <div className="pt-8 border-t border-[#361D42]/12 flex flex-wrap items-center justify-center gap-6 text-sm font-dm text-[#361D42]">
+            <a
+              href={buildFlamingoWhatsAppUrl(0)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold hover:text-[#EE6B96] transition-colors"
+            >
+              WhatsApp: {FLAMINGO_BRAND.contact.phoneDisplay}
+            </a>
+            <span className="text-[#361D42]/30">·</span>
+            <a
+              href={`mailto:${FLAMINGO_BRAND.contact.email}`}
+              className="font-medium hover:text-[#EE6B96] transition-colors"
+            >
+              {FLAMINGO_BRAND.contact.email}
+            </a>
+            <span className="text-[#361D42]/30">·</span>
+            <a
+              href={FLAMINGO_BRAND.contact.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium hover:text-[#EE6B96] transition-colors"
+            >
+              Instagram {FLAMINGO_BRAND.contact.handle}
+            </a>
+            <span className="text-[#361D42]/30">·</span>
+            <a
+              href={FLAMINGO_BRAND.contact.facebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium hover:text-[#EE6B96] transition-colors"
+            >
+              Facebook Oficial
+            </a>
+          </div>
         </div>
       </section>
 
@@ -571,7 +611,7 @@ export const HomeExperience: React.FC = () => {
           7. FOOTER EDITORIAL EN CIRUELA PROFUNDO (#361D42)
          ===================================================================== */}
       <footer className="bg-[#361D42] text-[#F5F1FA] py-16 px-6 sm:px-14 lg:px-20">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10">
           <div className="space-y-3">
             <img
               src={FLAMINGO_BRAND.logos.lightText}
@@ -586,15 +626,15 @@ export const HomeExperience: React.FC = () => {
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <span className="block font-dm text-xs uppercase tracking-[0.22em] text-[#F48FB1] font-bold">
-              Central de Preventa · WhatsApp Oficial
+              Central de Preventa · {FLAMINGO_BRAND.contact.handle}
             </span>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               {WHATSAPP_ADVISORS.map((adv, idx) => (
                 <a
                   key={adv.id}
-                  href={buildFlamingoWhatsAppUrl(idx as 0 | 1)}
+                  href={buildFlamingoWhatsAppUrl(idx)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-full border border-[#F5F1FA]/40 px-6 py-3 font-dm text-sm font-bold tracking-[0.16em] text-white hover:bg-[#EE6B96] hover:border-[#EE6B96] hover:text-[#23112B] transition-colors"
@@ -602,6 +642,30 @@ export const HomeExperience: React.FC = () => {
                   {adv.displayPhone}
                 </a>
               ))}
+              <a
+                href={`mailto:${FLAMINGO_BRAND.contact.email}`}
+                className="rounded-full border border-[#F5F1FA]/25 px-5 py-3 font-dm text-xs font-medium tracking-wider text-[#EAE3F2] hover:bg-white/10 transition-colors"
+              >
+                {FLAMINGO_BRAND.contact.email}
+              </a>
+            </div>
+            <div className="flex flex-wrap items-center gap-6 pt-1 text-xs font-dm text-[#EAE3F2]/80">
+              <a
+                href={FLAMINGO_BRAND.contact.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#F48FB1] transition-colors underline underline-offset-4"
+              >
+                Instagram · @inmobiliaria.flamingo
+              </a>
+              <a
+                href={FLAMINGO_BRAND.contact.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#F48FB1] transition-colors underline underline-offset-4"
+              >
+                Facebook · Inmobiliaria Flamingo
+              </a>
             </div>
           </div>
         </div>

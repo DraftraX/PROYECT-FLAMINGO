@@ -50,6 +50,14 @@ export const FLAMINGO_BRAND = {
     lightText: '/brand/logo-flamingo-light.png',
     raw: '/brand/logo-flamingo-raw.png',
   },
+  contact: {
+    phoneDisplay: '+51 989 195 093',
+    phoneRaw: '51989195093',
+    email: 'aurora.aybar@gmail.com',
+    handle: '@ResidencialFlamingo',
+    instagramUrl: 'https://www.instagram.com/inmobiliaria.flamingo/',
+    facebookUrl: 'https://www.facebook.com/profile.php?id=61583317215238',
+  },
   sequence: {
     basePath: '/sequence',
     totalFrames: 150,
@@ -64,22 +72,15 @@ export const FLAMINGO_BRAND = {
 export const WHATSAPP_ADVISORS: WhatsAppAdvisor[] = [
   {
     id: 'advisor-1',
-    label: 'Central Preventa 1',
-    displayPhone: '940 152 191',
-    rawPhone: '51940152191',
-    role: 'Asesor Comercial Senior · Preventa',
-  },
-  {
-    id: 'advisor-2',
-    label: 'Central Preventa 2',
-    displayPhone: '942 710 250',
-    rawPhone: '51942710250',
-    role: 'Asesor Comercial · Visitas Guiadas',
+    label: 'Central Preventa Oficial',
+    displayPhone: '+51 989 195 093',
+    rawPhone: '51989195093',
+    role: 'Asesor Comercial Oficial · Preventa & Visitas',
   },
 ];
 
 export function buildFlamingoWhatsAppUrl(
-  advisorIndex: 0 | 1 = 0,
+  advisorIndex: number = 0,
   customMessage?: string
 ): string {
   const advisor = WHATSAPP_ADVISORS[advisorIndex] ?? WHATSAPP_ADVISORS[0];

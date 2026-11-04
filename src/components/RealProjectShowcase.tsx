@@ -147,7 +147,7 @@ export const RealProjectShowcase: React.FC = () => {
                     >
                       <span className="font-dm text-sm">
                         <strong className="text-[#EE6B96] mr-3">{zone.num}</strong>
-                        {zone.title}
+                        <span>{zone.title}</span>
                       </span>
                       <span className="text-xs uppercase tracking-widest">→</span>
                     </button>
@@ -184,51 +184,65 @@ export const RealProjectShowcase: React.FC = () => {
                   !showVideo ? 'cursor-ew-resize touch-none' : ''
                 }`}
               >
-                {!showVideo ? (
-                  <>
-                    <img
-                      src={currentZone.visionImg}
-                      alt={`${currentZone.title} — Proyección`}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      draggable={false}
-                    />
-                    <img
-                      src={currentZone.realImg}
-                      alt={`${currentZone.title} — Obra Real`}
-                      style={{ clipPath: `inset(0 ${100 - splitPercent}% 0 0)` }}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      draggable={false}
-                    />
-
-                    {/* Clean Minimalist Divider Line */}
-                    <div
-                      style={{ left: `${splitPercent}%` }}
-                      className="pointer-events-none absolute inset-y-0 z-10 w-0.5 -translate-x-1/2 bg-white"
-                    >
-                      <div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#361D42] shadow-md font-dm text-xs font-bold">
-                        ↔
-                      </div>
-                    </div>
-
-                    <span className="pointer-events-none absolute bottom-4 left-4 bg-[#23112B]/80 px-3.5 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-white">
-                      Obra Real Hoy
-                    </span>
-                    <span className="pointer-events-none absolute bottom-4 right-4 bg-white/90 px-3.5 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-[#361D42]">
-                      Proyección
-                    </span>
-                  </>
-                ) : (
-                  <video
-                    key={currentZone.videoUrl}
-                    src={currentZone.videoUrl}
-                    poster={currentZone.visionImg}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="h-full w-full object-cover"
+                {/* Persistent Comparator Layer */}
+                <div
+                  className={`
+                    absolute inset-0 transition-opacity duration-200
+                    ${showVideo ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+                  `}
+                >
+                  <img
+                    src={currentZone.visionImg}
+                    alt={`${currentZone.title} — Proyección`}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    draggable={false}
                   />
-                )}
+                  <img
+                    src={currentZone.realImg}
+                    alt={`${currentZone.title} — Obra Real`}
+                    style={{ clipPath: `inset(0 ${100 - splitPercent}% 0 0)` }}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    draggable={false}
+                  />
+
+                  {/* Clean Minimalist Divider Line */}
+                  <div
+                    style={{ left: `${splitPercent}%` }}
+                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 -translate-x-1/2 bg-white"
+                  >
+                    <div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#361D42] shadow-md font-dm text-xs font-bold">
+                      ↔
+                    </div>
+                  </div>
+
+                  <span className="pointer-events-none absolute bottom-4 left-4 bg-[#23112B]/80 px-3.5 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-white">
+                    Obra Real Hoy
+                  </span>
+                  <span className="pointer-events-none absolute bottom-4 right-4 bg-white/90 px-3.5 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-[#361D42]">
+                    Proyección
+                  </span>
+                </div>
+
+                {/* Persistent Video Wrapper Layer */}
+                <div
+                  className={`
+                    absolute inset-0 transition-opacity duration-200
+                    ${showVideo ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none -z-10'}
+                  `}
+                >
+                  {showVideo && (
+                    <video
+                      key={currentZone.videoUrl}
+                      src={currentZone.videoUrl}
+                      poster={currentZone.visionImg}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Clean Footer Strip Below Frame */}
