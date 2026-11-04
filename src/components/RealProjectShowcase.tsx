@@ -1,130 +1,99 @@
-import React, { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useRef, useState } from 'react';
 import {
+  buildFlamingoWhatsAppUrl,
   FLAMINGO_BRAND,
-  OBRA_EVIDENCE_PILLS,
   TARAPOTO_VIDEO_CHAPTERS,
 } from '../config/flamingo';
-import type { InterestOption } from './ContactDrawer';
 
-gsap.registerPlugin(ScrollTrigger);
-
-interface RealProjectShowcaseProps {
-  onOpenContactDrawer: (interest?: InterestOption, lotNote?: string) => void;
+interface TransformationZone {
+  id: string;
+  num: string;
+  title: string;
+  description: string;
+  realImg: string;
+  visionImg: string;
+  videoUrl: string;
 }
 
-export const RealProjectShowcase: React.FC<RealProjectShowcaseProps> = ({
-  onOpenContactDrawer,
-}) => {
-  // Sección A: Video Showcase + Audio Narration State
-  const sectionARef = useRef<HTMLElement | null>(null);
-  const cinemaFrameRef = useRef<HTMLDivElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+const TRANSFORMATION_ZONES: TransformationZone[] = [
+  {
+    id: 'portico',
+    num: '01',
+    title: 'Pórtico de Ingreso en Piedra y Madera',
+    description:
+      'Estructura monumental ejecutada en piedra laja, concreto arquitectónico y portón de madera dura en Prolongación Jr. Cuzco s/n, Tarapoto.',
+    realImg: '/drive/2d/img-0760.webp',
+    visionImg: '/drive/2d/vision-portico.webp',
+    videoUrl: '/videos/transform-portico.webm',
+  },
+  {
+    id: 'avenida',
+    num: '02',
+    title: 'Avenida Principal · Lotes de 160 m² y 200 m²',
+    description:
+      'Vía central trazada con cajas domiciliarias de agua potable instaladas a pie de lote y proyección residencial de 2 niveles.',
+    realImg: '/drive/2d/img-0702.webp',
+    visionImg: '/drive/2d/vision-avenue.webp',
+    videoUrl: '/videos/transform-avenue.webm',
+  },
+  {
+    id: 'parque',
+    num: '03',
+    title: 'Parque Central de Palmeras y Recreación',
+    description:
+      'Alameda central con palmeras adultas conservadas y área de recreación pública de 1,134.66 m² frente a su consolidación paisajística.',
+    realImg: '/drive/2d/img-0751.webp',
+    visionImg: '/drive/2d/vision-park.webp',
+    videoUrl: '/videos/transform-park.webm',
+  },
+];
 
+const ALEDANOS_ITEMS = [
+  {
+    src: '/drive/2d/img-0752.webp',
+    title: 'A 30 metros del Colegio Virgen Dolorosa',
+    subtitle:
+      'Conexión inmediata con infraestructura educativa consolidada en Tarapoto desde el pórtico principal.',
+  },
+  {
+    src: '/drive/2d/img-0760.webp',
+    title: 'Pórtico Principal en Piedra y Madera',
+    subtitle: 'Acceso controlado 100% construido sobre Prolongación Jr. Cuzco s/n.',
+  },
+  {
+    src: '/drive/2d/img-0702.webp',
+    title: 'Cajas de Agua y Lotes Estacados',
+    subtitle:
+      'Parcelas de 160 m² (8m × 20m) y 200 m² (10m × 20m) listas para entrega inmediata.',
+  },
+  {
+    src: '/drive/2d/img-0710.webp',
+    title: 'Red de Desagüe y Buzones en Vía',
+    subtitle: 'Saneamiento físico ejecutado en el eje vial para respaldo de tu inversión.',
+  },
+];
+
+export const RealProjectShowcase: React.FC = () => {
+  // Documentary Video State
+  const docVideoRef = useRef<HTMLVideoElement | null>(null);
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
-  const [isAudioActive, setIsAudioActive] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlayingDoc, setIsPlayingDoc] = useState(true);
+  const [isMutedDoc, setIsMutedDoc] = useState(true);
   const [videoProgressPct, setVideoProgressPct] = useState(0);
 
-  // Sección B: Locket Fan Cards + Evidence Widget State
-  const sectionBRef = useRef<HTMLElement | null>(null);
-  const fanContainerRef = useRef<HTMLDivElement | null>(null);
-  const card160Ref = useRef<HTMLDivElement | null>(null);
-  const card200Ref = useRef<HTMLDivElement | null>(null);
+  // Comparator State
+  const [activeZoneIdx, setActiveZoneIdx] = useState(0);
+  const [showVideo, setShowVideo] = useState(false);
+  const [splitPercent, setSplitPercent] = useState(50);
 
-  const [activePillIdx, setActivePillIdx] = useState(0);
-  const [showVisionMode, setShowVisionMode] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
 
-  const currentChapter =
-    TARAPOTO_VIDEO_CHAPTERS[activeChapterIdx] || TARAPOTO_VIDEO_CHAPTERS[0];
-  const currentEvidence =
-    OBRA_EVIDENCE_PILLS[activePillIdx] || OBRA_EVIDENCE_PILLS[0];
-
-  // ScrollTrigger animations for Sección A (Cinema Frame) and Sección B (Fan Cards)
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      if (cinemaFrameRef.current) {
-        gsap.fromTo(
-          cinemaFrameRef.current,
-          {
-            scale: 0.9,
-            rotate: -1.5,
-            y: 36,
-          },
-          {
-            scale: 1,
-            rotate: 0,
-            y: 0,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: cinemaFrameRef.current,
-              start: 'top 88%',
-              end: 'top 32%',
-              scrub: 0.65,
-            },
-          }
-        );
-      }
-
-      if (fanContainerRef.current && card160Ref.current && card200Ref.current) {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: fanContainerRef.current,
-            start: 'top 82%',
-            toggleActions: 'play none none reverse',
-          },
-        });
-
-        tl.fromTo(
-          card160Ref.current,
-          {
-            x: 48,
-            y: 28,
-            rotate: 5,
-            scale: 0.92,
-            opacity: 0,
-          },
-          {
-            x: 0,
-            y: 0,
-            rotate: -1.6,
-            scale: 1,
-            opacity: 1,
-            duration: 0.95,
-            ease: 'back.out(1.65)',
-          },
-          0
-        ).fromTo(
-          card200Ref.current,
-          {
-            x: -48,
-            y: 28,
-            rotate: -5,
-            scale: 0.92,
-            opacity: 0,
-          },
-          {
-            x: 0,
-            y: 0,
-            rotate: 1.6,
-            scale: 1,
-            opacity: 1,
-            duration: 0.95,
-            ease: 'back.out(1.65)',
-          },
-          0.08
-        );
-      }
-    });
-
-    return () => {
-      ctx.revert();
-    };
-  }, []);
+  const currentZone = TRANSFORMATION_ZONES[activeZoneIdx] || TRANSFORMATION_ZONES[0];
+  const currentChapter = TARAPOTO_VIDEO_CHAPTERS[activeChapterIdx] || TARAPOTO_VIDEO_CHAPTERS[0];
 
   const handleTimeUpdate = () => {
-    const v = videoRef.current;
+    const v = docVideoRef.current;
     if (!v || !v.duration) return;
     const t = v.currentTime;
     setVideoProgressPct(Math.min(100, Math.max(0, (t / v.duration) * 100)));
@@ -137,279 +106,184 @@ export const RealProjectShowcase: React.FC<RealProjectShowcaseProps> = ({
     }
   };
 
-  const handleToggleAudioTour = () => {
-    const v = videoRef.current;
-    if (!v) return;
-
-    if (!isAudioActive) {
-      // Unmute and synchronize audio tour
-      v.muted = false;
-      v.volume = 1.0;
-      if (v.currentTime > 47) {
-        v.currentTime = 0;
-      }
-      v.play()
-        .then(() => {
-          setIsPlaying(true);
-          setIsAudioActive(true);
-        })
-        .catch(() => {});
-    } else {
-      v.muted = true;
-      setIsAudioActive(false);
-    }
-  };
-
-  const handleRestartWithAudio = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.currentTime = 0;
-    v.muted = false;
-    v.volume = 1.0;
-    setActiveChapterIdx(0);
-    v.play()
-      .then(() => {
-        setIsPlaying(true);
-        setIsAudioActive(true);
-      })
-      .catch(() => {});
-  };
-
   const handleSelectChapter = (idx: number) => {
     setActiveChapterIdx(idx);
     const ch = TARAPOTO_VIDEO_CHAPTERS[idx];
-    const v = videoRef.current;
+    const v = docVideoRef.current;
     if (v && ch) {
       v.currentTime = ch.startSec + 0.05;
+      v.muted = false;
+      setIsMutedDoc(false);
       v.play()
-        .then(() => setIsPlaying(true))
+        .then(() => setIsPlayingDoc(true))
         .catch(() => {});
     }
   };
 
-  const handleCardPointerMove = (
-    e: React.PointerEvent<HTMLDivElement>,
-    baseRotate: number
-  ) => {
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    const nx = (e.clientX - rect.left) / Math.max(1, rect.width) - 0.5;
-    const ny = (e.clientY - rect.top) / Math.max(1, rect.height) - 0.5;
-
-    gsap.to(el, {
-      rotateY: nx * 9,
-      rotateX: -ny * 7,
-      rotateZ: baseRotate + nx * 1.5,
-      y: -6,
-      duration: 0.35,
-      ease: 'power2.out',
-      transformPerspective: 900,
-    });
+  const toggleDocPlay = () => {
+    const v = docVideoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      v.play()
+        .then(() => setIsPlayingDoc(true))
+        .catch(() => {});
+    } else {
+      v.pause();
+      setIsPlayingDoc(false);
+    }
   };
 
-  const handleCardPointerLeave = (
-    e: React.PointerEvent<HTMLDivElement>,
-    baseRotate: number
-  ) => {
-    gsap.to(e.currentTarget, {
-      rotateY: 0,
-      rotateX: 0,
-      rotateZ: baseRotate,
-      y: 0,
-      duration: 0.6,
-      ease: 'elastic.out(1, 0.6)',
-    });
+  const toggleDocMute = () => {
+    const v = docVideoRef.current;
+    if (!v) return;
+    const nextMuted = !v.muted;
+    v.muted = nextMuted;
+    setIsMutedDoc(nextMuted);
+    if (!nextMuted && v.paused) {
+      v.play()
+        .then(() => setIsPlayingDoc(true))
+        .catch(() => {});
+    }
+  };
+
+  const updateSplitFromClientX = (clientX: number) => {
+    const el = stageRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pct = ((clientX - rect.left) / Math.max(1, rect.width)) * 100;
+    setSplitPercent(Math.max(5, Math.min(95, pct)));
   };
 
   return (
     <>
       {/* =====================================================================
-          SECCIÓN A: SHOWCASE CINEMÁTICO CON NARRACIÓN DE AUDIO
-          ("El Entorno que Valoriza tu Lote" · Estilo Seesaw / Locket)
+          1. SECCIÓN DOCUMENTAL EN VIDEO: MARAVILLAS DE TARAPOTO + FLAMINGO
+             (Inspirado en el bloque de video y bienestar de Selva Profunda)
          ===================================================================== */}
       <section
-        id="entorno-tarapoto"
-        ref={sectionARef}
-        className="bg-[#F5F1FA] py-20 sm:py-28 px-4 sm:px-10 lg:px-16 overflow-hidden"
+        id="tarapoto-video"
+        className="bg-[#23112B] text-[#F5F1FA] py-24 sm:py-32 px-6 sm:px-14 lg:px-20 overflow-hidden"
       >
-        <div className="max-w-6xl mx-auto space-y-10">
-          {/* Compact Editorial Header (Economy of Words) */}
-          <div className="max-w-2xl mx-auto text-center space-y-3 gsap-editorial-reveal">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white border border-[#361D42]/10 px-4 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.22em] text-[#515B1B] shadow-xs">
-              <span className="h-2 w-2 rounded-full bg-[#EE6B96]" />
-              <span>CÁPSULA DOCUMENTAL CON AUDIO NARRADO</span>
+        <div className="max-w-7xl mx-auto space-y-12">
+          {/* Editorial Header */}
+          <div className="max-w-3xl mx-auto text-center space-y-4 gsap-editorial-reveal">
+            <span className="inline-block font-dm text-xs font-bold uppercase tracking-[0.28em] text-[#F48FB1]">
+              EL NUEVO EPICENTRO DEL BIENESTAR EN LA AMAZONÍA
             </span>
-            <h2 className="font-geista font-normal text-4xl sm:text-6xl text-[#361D42] leading-[1.04]">
-              <span>El entorno que </span>
-              <span className="italic text-[#EE6B96]">valoriza tu lote</span>
+            <h2 className="font-geista font-normal text-4xl sm:text-6xl text-white leading-[1.08]">
+              <span>Maravillas de Tarapoto, </span>
+              <span className="italic text-[#F48FB1]">Cordillera Escalera</span>
+              <span> y Residencial Flamingo</span>
             </h2>
-            <p className="font-dm text-sm sm:text-base text-[#361D42]/75 leading-relaxed">
-              Cordillera Escalera, Catarata de Ahuashiyacu, Laguna Azul y vuelo real sobre{' '}
-              <strong className="text-[#361D42]">Flamingo Residencial</strong> en una sola
-              experiencia audiovisual.
+            <p className="font-dm text-base sm:text-lg text-[#EAE3F2]/80 leading-relaxed">
+              Explora en este recorrido audiovisual con voz narrada las montañas nubosas de la
+              Cordillera Escalera, las aguas de Ahuashiyacu y la Laguna Azul, su fauna y flora, y el
+              vuelo real en dron sobre tu futuro lote en Tarapoto.
             </p>
           </div>
 
-          {/* Seesaw / Locket Rounded-[36px] Cinema Container */}
-          <div
-            ref={cinemaFrameRef}
-            style={{ border: '1px solid rgba(54, 29, 66, 0.08)' }}
-            className="relative w-full overflow-hidden rounded-[36px] bg-[#190B20] shadow-[0_32px_90px_-20px_rgba(35,17,43,0.38)] will-change-transform"
-          >
-            <div className="relative aspect-[16/10] sm:aspect-video w-full overflow-hidden">
-              <video
-                ref={videoRef}
-                poster="/videos/tarapoto-flamingo-poster.webp"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                onTimeUpdate={handleTimeUpdate}
-                onClick={() => {
-                  const v = videoRef.current;
-                  if (!v) return;
-                  if (v.paused) {
-                    v.play().then(() => setIsPlaying(true)).catch(() => {});
-                  } else {
-                    v.pause();
-                    setIsPlaying(false);
-                  }
-                }}
-                className="h-full w-full object-cover cursor-pointer"
-              >
-                <source src="/videos/tarapoto-flamingo-reel.mp4" type="video/mp4" />
-                <source src="/videos/tarapoto-flamingo-reel.webm" type="video/webm" />
-              </video>
-
-              {/* Subtle Vignette for Legibility */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#190B20]/90 via-[#190B20]/20 to-[#190B20]/40" />
-
-              {/* Top Floating Bar: Magnetic Audio Pill + Replay Control */}
-              <div className="absolute top-4 sm:top-7 left-4 sm:left-7 right-4 sm:right-7 flex flex-wrap items-center justify-between gap-3 z-20">
-                {/* Magnetic Audio Pill Button */}
+          {/* Interactive Chapter Pills */}
+          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 gsap-editorial-reveal">
+            {TARAPOTO_VIDEO_CHAPTERS.map((ch, idx) => {
+              const active = idx === activeChapterIdx;
+              return (
                 <button
+                  key={ch.id}
                   type="button"
-                  onClick={handleToggleAudioTour}
-                  data-testid="toggle-audio-tour"
-                  className={`group inline-flex items-center gap-3 rounded-full px-5 sm:px-6 py-3 font-dm text-xs sm:text-[13px] font-bold tracking-[0.06em] transition-all duration-300 shadow-lg cursor-pointer active:scale-95 ${
-                    isAudioActive
-                      ? 'bg-[#EE6B96] text-[#23112B] shadow-[0_12px_32px_rgba(238,107,150,0.5)]'
-                      : 'bg-white/95 hover:bg-[#361D42] text-[#361D42] hover:text-white border border-white/40'
+                  onClick={() => handleSelectChapter(idx)}
+                  className={`rounded-full px-4 sm:px-5 py-2.5 font-dm text-xs font-bold uppercase tracking-[0.14em] transition-colors cursor-pointer flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#EE6B96] ${
+                    active
+                      ? 'bg-[#EE6B96] text-[#23112B]'
+                      : 'bg-[#361D42]/80 text-[#EAE3F2]/85 hover:bg-[#361D42] hover:text-white border border-white/10'
                   }`}
                 >
-                  {/* Animated Equalizer Bars */}
-                  <span className="flex items-end gap-[3px] h-3.5" aria-hidden="true">
-                    <span
-                      className={`w-[3px] rounded-full transition-all duration-300 ${
-                        isAudioActive
-                          ? 'h-3.5 bg-[#23112B] animate-pulse'
-                          : 'h-2 bg-[#EE6B96] group-hover:h-3.5'
-                      }`}
-                    />
-                    <span
-                      className={`w-[3px] rounded-full transition-all duration-300 ${
-                        isAudioActive
-                          ? 'h-2.5 bg-[#23112B] animate-bounce'
-                          : 'h-3.5 bg-[#EE6B96] group-hover:h-2'
-                      }`}
-                    />
-                    <span
-                      className={`w-[3px] rounded-full transition-all duration-300 ${
-                        isAudioActive
-                          ? 'h-3 bg-[#23112B] animate-pulse'
-                          : 'h-1.5 bg-[#EE6B96] group-hover:h-3'
-                      }`}
-                    />
-                    <span
-                      className={`w-[3px] rounded-full transition-all duration-300 ${
-                        isAudioActive
-                          ? 'h-3.5 bg-[#23112B] animate-bounce'
-                          : 'h-2.5 bg-[#EE6B96] group-hover:h-3.5'
-                      }`}
-                    />
-                  </span>
-                  <span>
-                    {isAudioActive
-                      ? 'Audio Narrado Activo · Silenciar'
-                      : 'Escuchar recorrido por Tarapoto (Audio)'}
-                  </span>
+                  <span className={active ? 'text-[#23112B]/75' : 'text-[#F48FB1]'}>{ch.num}</span>
+                  <span>{ch.label}</span>
                 </button>
+              );
+            })}
+          </div>
 
-                <div className="flex items-center gap-2">
-                  {isAudioActive && (
-                    <button
-                      type="button"
-                      onClick={handleRestartWithAudio}
-                      className="rounded-full bg-[#23112B]/80 hover:bg-[#361D42] backdrop-blur-md border border-white/20 px-4 py-2.5 font-dm text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors cursor-pointer"
-                    >
-                      Reiniciar voz
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const v = videoRef.current;
-                      if (!v) return;
-                      if (v.paused) {
-                        v.play().then(() => setIsPlaying(true)).catch(() => {});
-                      } else {
-                        v.pause();
-                        setIsPlaying(false);
-                      }
-                    }}
-                    className="rounded-full bg-[#23112B]/80 hover:bg-white hover:text-[#23112B] backdrop-blur-md border border-white/20 px-4 py-2.5 font-dm text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors cursor-pointer"
-                  >
-                    {isPlaying ? 'Pausa' : 'Play'}
-                  </button>
-                </div>
+          {/* 16:9 Cinema Frame with Live Chapter Overlay & Voiceover Control */}
+          <div className="relative aspect-video w-full overflow-hidden rounded-3xl bg-[#160A1C] border border-white/15 shadow-2xl gsap-editorial-reveal">
+            <video
+              ref={docVideoRef}
+              poster="/videos/tarapoto-flamingo-poster.webp"
+              autoPlay
+              muted={isMutedDoc}
+              loop
+              playsInline
+              preload="metadata"
+              onTimeUpdate={handleTimeUpdate}
+              onClick={toggleDocPlay}
+              className="h-full w-full object-cover cursor-pointer"
+            >
+              <source src="/videos/tarapoto-flamingo-reel.webm" type="video/webm" />
+              <source src="/videos/tarapoto-flamingo-reel.mp4" type="video/mp4" />
+            </video>
+
+            {/* Top Minimalist Bar inside Video */}
+            <div className="pointer-events-none absolute top-4 sm:top-6 left-4 sm:left-8 right-4 sm:right-8 flex flex-wrap items-center justify-between gap-3">
+              <div className="inline-flex items-center rounded-full bg-[#23112B]/85 backdrop-blur-md border border-white/15 px-4 py-1.5">
+                <span className="font-dm text-[11px] font-bold uppercase tracking-[0.2em] text-[#F5F1FA]">
+                  {`Capítulo ${currentChapter.num} · ${currentChapter.label}`}
+                </span>
               </div>
 
-              {/* Bottom Editorial Voiceover Subtitles & Chapter Pills */}
-              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 z-20 space-y-5">
-                {/* Live Editorial Subtitle Box */}
-                <div className="max-w-3xl space-y-2">
-                  <span className="inline-block rounded-full bg-[#EE6B96]/20 border border-[#EE6B96]/40 px-3.5 py-1 font-dm text-[10px] font-bold uppercase tracking-[0.2em] text-[#F48FB1]">
-                    {currentChapter.label}
-                  </span>
+              <div className="pointer-events-auto flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={toggleDocMute}
+                  className={`rounded-full px-4 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.16em] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                    isMutedDoc
+                      ? 'bg-[#EE6B96] text-[#23112B] hover:bg-[#F48FB1]'
+                      : 'bg-white text-[#23112B] hover:bg-[#EAE3F2]'
+                  }`}
+                >
+                  {isMutedDoc ? 'Escuchar con voz' : 'Silenciar voz'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={toggleDocPlay}
+                  className="rounded-full bg-[#23112B]/85 backdrop-blur-md border border-white/20 px-4 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-white hover:bg-[#EE6B96] hover:text-[#23112B] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#EE6B96]"
+                >
+                  {isPlayingDoc ? 'Pausar' : 'Reproducir'}
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Editorial Caption Overlay */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#190B20]/95 via-[#190B20]/65 to-transparent pt-16 pb-6 px-6 sm:px-10">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="max-w-2xl space-y-1.5">
                   <h3 className="font-geista font-normal text-2xl sm:text-4xl text-white leading-tight">
                     {currentChapter.title}
                   </h3>
-                  <p className="font-dm text-xs sm:text-sm text-[#EAE3F2]/90 leading-relaxed max-w-2xl">
-                    “{currentChapter.subtitle}”
+                  <p className="font-dm text-xs sm:text-sm text-[#EAE3F2]/85 leading-relaxed">
+                    {currentChapter.description}
                   </p>
                 </div>
 
-                {/* Chapter Pills + Progress Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/15">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {TARAPOTO_VIDEO_CHAPTERS.map((ch, idx) => {
-                      const active = idx === activeChapterIdx;
-                      return (
-                        <button
-                          key={ch.id}
-                          type="button"
-                          onClick={() => handleSelectChapter(idx)}
-                          className={`rounded-full px-4 py-2 font-dm text-xs font-bold tracking-[0.06em] transition-all cursor-pointer ${
-                            active
-                              ? 'bg-white text-[#23112B] shadow-md'
-                              : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
-                          }`}
-                        >
-                          {ch.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                <a
+                  href={buildFlamingoWhatsAppUrl(
+                    0,
+                    'Hola Flamingo Residencial, acabo de ver el video sobre Tarapoto y el proyecto. Deseo recibir el brochure y precios de preventa.'
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pointer-events-auto shrink-0 self-start md:self-auto rounded-full bg-[#EE6B96] hover:bg-[#F48FB1] text-[#23112B] px-6 py-2.5 font-dm text-xs font-bold uppercase tracking-[0.16em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  Solicitar Brochure
+                </a>
+              </div>
 
-                  {/* Compact Progress Pill */}
-                  <div className="w-full sm:w-44 h-1.5 rounded-full bg-white/20 overflow-hidden">
-                    <div
-                      style={{ width: `${videoProgressPct.toFixed(1)}%` }}
-                      className="h-full bg-[#EE6B96] transition-all duration-150"
-                    />
-                  </div>
-                </div>
+              {/* Timeline Progress Bar */}
+              <div className="mt-5 h-1 w-full overflow-hidden rounded-full bg-white/15">
+                <div
+                  style={{ width: `${videoProgressPct.toFixed(1)}%` }}
+                  className="h-full bg-[#EE6B96] transition-all duration-150"
+                />
               </div>
             </div>
           </div>
@@ -417,283 +291,210 @@ export const RealProjectShowcase: React.FC<RealProjectShowcaseProps> = ({
       </section>
 
       {/* =====================================================================
-          SECCIÓN B: ABANICO INTERACTIVO DE LOTES Y OBRA REAL
-          (Mecánica Locket Stacked/Fan Cards + Widget Táctil de 4 Píldoras)
+          2. SECCIÓN "ARQUITECTURA Y URBANISMO EN ARMONÍA" (COMPARADOR EN OBRA)
          ===================================================================== */}
-      <section
-        id="abanico-lotes"
-        ref={sectionBRef}
-        className="bg-white py-20 sm:py-28 px-4 sm:px-10 lg:px-16 overflow-hidden"
-      >
-        <div className="max-w-6xl mx-auto space-y-20">
-          {/* 1. Locket Stacked/Fan Collectible Lot Cards (160 m² & 200 m²) */}
-          <div className="space-y-12">
-            <div className="max-w-2xl mx-auto text-center space-y-3 gsap-editorial-reveal">
-              <span className="inline-block font-dm text-[11px] font-bold uppercase tracking-[0.24em] text-[#515B1B]">
-                COLECCIÓN RESIDENCIAL · ENTREGA INMEDIATA
+      <section id="proyecto" className="bg-white pt-24 pb-28 px-6 sm:px-14 lg:px-20 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          {/* 2-Column Editorial Layout (Selva Profunda "Arquitectura Ancestral" + Comparator) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center gsap-editorial-reveal">
+            {/* Left 5 Columns: Clean Editorial Copy + Zone Selector */}
+            <div className="lg:col-span-5 space-y-6">
+              <span className="inline-block font-dm text-xs font-bold uppercase tracking-[0.24em] text-[#515B1B]">
+                URBANISMO PLANIFICADO EN TARAPOTO
               </span>
-              <h2 className="font-geista font-normal text-4xl sm:text-6xl text-[#361D42] leading-[1.05]">
-                <span>Elige la escala de </span>
-                <span className="italic text-[#EE6B96]">tu próximo hogar</span>
+
+              <h2 className="font-geista font-normal text-4xl sm:text-5xl text-[#361D42] leading-[1.08]">
+                <span>Arquitectura residencial en armonía con la </span>
+                <span className="italic text-[#EE6B96]">selva alta</span>
               </h2>
-              <p className="font-dm text-sm sm:text-base text-[#361D42]/75">
-                Dos metrajes independientes con título de propiedad inscrito y servicios completos a
-                pie de lote.
+
+              <p className="font-dm text-base text-[#361D42]/80 leading-relaxed">
+                Cada rincón de <strong>{FLAMINGO_BRAND.name}</strong> ha sido diseñado para
+                integrarse con el paisaje de Tarapoto, conservando palmeras reales y priorizando la
+                ventilación cruzada, la iluminación natural y el confort familiar en lotes de{' '}
+                <strong>160 m² y 200 m²</strong>.
               </p>
-            </div>
 
-            <div
-              ref={fanContainerRef}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-7 sm:gap-9 items-stretch max-w-5xl mx-auto"
-            >
-              {/* Card 1: Lote Estándar · 160 m² */}
-              <div
-                ref={card160Ref}
-                onPointerMove={(e) => handleCardPointerMove(e, -1.6)}
-                onPointerLeave={(e) => handleCardPointerLeave(e, -1.6)}
-                style={{ border: '1px solid rgba(54, 29, 66, 0.1)' }}
-                className="group relative flex flex-col justify-between rounded-[32px] bg-[#F5F1FA] p-7 sm:p-9 shadow-[0_24px_60px_-18px_rgba(54,29,66,0.14)] transition-shadow hover:shadow-[0_30px_75px_-15px_rgba(238,107,150,0.28)]"
-              >
-                <div className="space-y-6">
-                  {/* Top Badge + Dimensions Pill */}
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="rounded-full bg-[#361D42] px-4 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-white">
-                      Lote Estándar
-                    </span>
-                    <span className="rounded-full bg-white px-4 py-1.5 font-dm text-xs font-bold text-[#361D42] border border-[#361D42]/10">
-                      Frente 8m × Fondo 20m
-                    </span>
-                  </div>
+              <p className="font-dm text-sm text-[#361D42]/75 leading-relaxed">
+                Desliza el comparador interactivo para contrastar el avance real ejecutado hoy en
+                obra frente a su proyección arquitectónica:
+              </p>
 
-                  {/* Hero Area Figure */}
-                  <div className="flex items-baseline gap-3">
-                    <span className="font-geista text-6xl sm:text-7xl text-[#361D42] leading-none">
-                      160
-                    </span>
-                    <span className="font-geista text-3xl sm:text-4xl text-[#EE6B96]">m²</span>
-                  </div>
-
-                  {/* Interactive Architectural Preview Frame */}
-                  <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[22px] bg-[#23112B]">
-                    <img
-                      src="/drive/2d/vision-avenue.webp"
-                      alt="Lote Estándar de 160 m² en Flamingo Residencial"
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#23112B]/70 via-transparent to-transparent" />
-                    <span className="absolute bottom-3 left-3.5 rounded-full bg-white/95 px-3 py-1 font-dm text-[10px] font-bold uppercase tracking-[0.16em] text-[#361D42]">
-                      Ideal para residencia familiar con jardín amazónico
-                    </span>
-                  </div>
-
-                  {/* Concise Tactile Specs */}
-                  <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white px-3.5 py-1.5 font-dm text-xs font-semibold text-[#361D42]">
-                      ✓ Título Independizado
-                    </span>
-                    <span className="rounded-full bg-white px-3.5 py-1.5 font-dm text-xs font-semibold text-[#361D42]">
-                      ✓ Entrega Inmediata
-                    </span>
-                    <span className="rounded-full bg-white px-3.5 py-1.5 font-dm text-xs font-semibold text-[#361D42]">
-                      ✓ Agua, Desagüe y Luz
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-7 mt-6 border-t border-[#361D42]/10">
-                  <button
-                    type="button"
-                    data-testid="quote-160-btn"
-                    onClick={() =>
-                      onOpenContactDrawer(
-                        'Lote de 160 m² (8m × 20m)',
-                        'Lote Estándar · 160 m² (8m × 20m)'
-                      )
-                    }
-                    className="w-full rounded-full bg-[#361D42] hover:bg-[#EE6B96] text-white hover:text-[#23112B] py-4 px-6 font-dm text-xs sm:text-sm font-bold uppercase tracking-[0.16em] transition-all duration-300 flex items-center justify-between cursor-pointer active:scale-[0.99]"
-                  >
-                    <span>Cotizar lote de 160 m²</span>
-                    <span className="text-base leading-none">→</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Card 2: Lote Amplio · 200 m² */}
-              <div
-                ref={card200Ref}
-                onPointerMove={(e) => handleCardPointerMove(e, 1.6)}
-                onPointerLeave={(e) => handleCardPointerLeave(e, 1.6)}
-                style={{ border: '1px solid rgba(238, 107, 150, 0.28)' }}
-                className="group relative flex flex-col justify-between rounded-[32px] bg-[#2B1436] text-white p-7 sm:p-9 shadow-[0_28px_70px_-18px_rgba(35,17,43,0.35)] transition-shadow hover:shadow-[0_34px_85px_-15px_rgba(238,107,150,0.4)]"
-              >
-                <div className="space-y-6">
-                  {/* Top Badge + Dimensions Pill */}
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="rounded-full bg-[#EE6B96] px-4 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-[#23112B]">
-                      Lote Amplio · Más Solicitado
-                    </span>
-                    <span className="rounded-full bg-white/10 px-4 py-1.5 font-dm text-xs font-bold text-[#F5F1FA] border border-white/15">
-                      Frente 10m × Fondo 20m
-                    </span>
-                  </div>
-
-                  {/* Hero Area Figure */}
-                  <div className="flex items-baseline gap-3">
-                    <span className="font-geista text-6xl sm:text-7xl text-white leading-none">
-                      200
-                    </span>
-                    <span className="font-geista text-3xl sm:text-4xl text-[#F48FB1]">m²</span>
-                  </div>
-
-                  {/* Interactive Architectural Preview Frame */}
-                  <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[22px] bg-[#190B20]">
-                    <img
-                      src="/drive/2d/vision-park.webp"
-                      alt="Lote Amplio de 200 m² en Flamingo Residencial"
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#190B20]/75 via-transparent to-transparent" />
-                    <span className="absolute bottom-3 left-3.5 rounded-full bg-[#23112B]/90 border border-white/15 px-3 py-1 font-dm text-[10px] font-bold uppercase tracking-[0.16em] text-[#F48FB1]">
-                      Mayor frente arquitectónico, piscina y terraza social
-                    </span>
-                  </div>
-
-                  {/* Concise Tactile Specs */}
-                  <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white/10 border border-white/10 px-3.5 py-1.5 font-dm text-xs font-semibold text-white">
-                      ✓ Frente de 10 metros
-                    </span>
-                    <span className="rounded-full bg-white/10 border border-white/10 px-3.5 py-1.5 font-dm text-xs font-semibold text-white">
-                      ✓ Título Independizado
-                    </span>
-                    <span className="rounded-full bg-white/10 border border-white/10 px-3.5 py-1.5 font-dm text-xs font-semibold text-white">
-                      ✓ Entrega Inmediata
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-7 mt-6 border-t border-white/12">
-                  <button
-                    type="button"
-                    data-testid="quote-200-btn"
-                    onClick={() =>
-                      onOpenContactDrawer(
-                        'Lote de 200 m² (10m × 20m)',
-                        'Lote Amplio · 200 m² (10m × 20m)'
-                      )
-                    }
-                    className="w-full rounded-full bg-[#EE6B96] hover:bg-white text-[#23112B] py-4 px-6 font-dm text-xs sm:text-sm font-bold uppercase tracking-[0.16em] transition-all duration-300 flex items-center justify-between cursor-pointer active:scale-[0.99]"
-                  >
-                    <span>Cotizar lote de 200 m²</span>
-                    <span className="text-base leading-none">→</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Widget Táctil Compacto de Evidencia en Obra (Reemplaza las 4 tarjetas pesadas) */}
-          <div
-            style={{ border: '1px solid rgba(54, 29, 66, 0.08)' }}
-            className="rounded-[36px] bg-[#F5F1FA] p-5 sm:p-8 lg:p-10 shadow-sm gsap-editorial-reveal"
-          >
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-7">
-              <div className="space-y-1.5">
-                <span className="font-dm text-[11px] font-bold uppercase tracking-[0.22em] text-[#515B1B]">
-                  EVIDENCIA FÍSICA VERIFICABLE EN TERRENO
-                </span>
-                <h3 className="font-geista font-normal text-3xl sm:text-4xl text-[#361D42]">
-                  <span>Obra ejecutada hoy en </span>
-                  <span className="italic text-[#EE6B96]">Tarapoto</span>
-                </h3>
-              </div>
-
-              {/* 4 Selectable Tactile Pills */}
-              <div className="flex flex-wrap items-center gap-2">
-                {OBRA_EVIDENCE_PILLS.map((pill, idx) => {
-                  const active = idx === activePillIdx;
+              {/* Minimalist Tab List (01, 02, 03) */}
+              <div className="border-t border-[#361D42]/12 pt-4 space-y-2">
+                {TRANSFORMATION_ZONES.map((zone, idx) => {
+                  const active = idx === activeZoneIdx;
                   return (
                     <button
-                      key={pill.id}
+                      key={zone.id}
                       type="button"
-                      onMouseEnter={() => setActivePillIdx(idx)}
-                      onClick={() => setActivePillIdx(idx)}
-                      className={`rounded-full px-4 py-2.5 font-dm text-xs font-bold transition-all duration-200 cursor-pointer active:scale-95 ${
+                      onClick={() => setActiveZoneIdx(idx)}
+                      className={`w-full text-left py-3 px-4 rounded-xl transition-colors flex items-center justify-between cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#361D42] ${
                         active
-                          ? 'bg-[#361D42] text-white shadow-md scale-[1.02]'
-                          : 'bg-white text-[#361D42]/80 hover:bg-[#EAE3F2] hover:text-[#361D42] border border-[#361D42]/10'
+                          ? 'bg-[#EAE3F2] text-[#361D42] font-bold'
+                          : 'text-[#361D42]/70 hover:bg-[#F5F1FA] hover:text-[#361D42]'
                       }`}
                     >
-                      {pill.pillLabel}
+                      <span className="font-dm text-sm">
+                        <strong className="text-[#EE6B96] mr-3">{zone.num}</strong>
+                        <span>{zone.title}</span>
+                      </span>
+                      <span className="font-dm text-[11px] uppercase tracking-widest text-[#361D42]/60">
+                        {active ? 'Activa' : 'Ver'}
+                      </span>
                     </button>
                   );
                 })}
               </div>
+
+              <p className="font-dm text-xs text-[#361D42]/70 leading-relaxed pt-1">
+                {currentZone.description}
+              </p>
             </div>
 
-            {/* Rounded Photo Frame with Instant Crossfade & Single Short Line */}
-            <div className="relative aspect-[16/10] sm:aspect-[21/9] w-full overflow-hidden rounded-[28px] bg-[#23112B] shadow-inner">
-              {OBRA_EVIDENCE_PILLS.map((pill, idx) => {
-                const active = idx === activePillIdx;
-                const displaySrc = showVisionMode ? pill.visionImage : pill.image;
-                return (
+            {/* Right 7 Columns: Clean Architectural Comparator / Video Frame */}
+            <div className="lg:col-span-7 space-y-4">
+              <div
+                ref={stageRef}
+                onPointerDown={(e) => {
+                  if (showVideo) return;
+                  isDraggingRef.current = true;
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  updateSplitFromClientX(e.clientX);
+                }}
+                onPointerMove={(e) => {
+                  if (showVideo || !isDraggingRef.current) return;
+                  updateSplitFromClientX(e.clientX);
+                }}
+                onPointerUp={(e) => {
+                  if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                    e.currentTarget.releasePointerCapture(e.pointerId);
+                  }
+                  isDraggingRef.current = false;
+                }}
+                className={`relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[#F5F1FA] select-none shadow-lg ${
+                  !showVideo ? 'cursor-ew-resize touch-none' : ''
+                }`}
+              >
+                {/* Persistent Comparator Layer */}
+                <div
+                  className={`
+                    absolute inset-0 transition-opacity duration-200
+                    ${showVideo ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+                  `}
+                >
                   <img
-                    key={pill.id}
-                    src={displaySrc}
-                    alt={pill.caption}
-                    className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${
-                      active
-                        ? 'opacity-100 scale-100 z-10'
-                        : 'opacity-0 scale-105 pointer-events-none z-0'
-                    }`}
+                    src={currentZone.visionImg}
+                    alt={`${currentZone.title} · Proyección`}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    draggable={false}
                   />
-                );
-              })}
+                  <img
+                    src={currentZone.realImg}
+                    alt={`${currentZone.title} · Obra Real`}
+                    style={{ clipPath: `inset(0 ${100 - splitPercent}% 0 0)` }}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    draggable={false}
+                  />
 
-              <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-[#190B20]/90 via-transparent to-[#190B20]/30" />
+                  {/* Clean Minimalist Divider Line */}
+                  <div
+                    style={{ left: `${splitPercent}%` }}
+                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 -translate-x-1/2 bg-white"
+                  >
+                    <div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#361D42] shadow-md font-dm text-xs font-bold">
+                      ↔
+                    </div>
+                  </div>
 
-              {/* Top Right Toggle: Foto Real vs Proyección */}
-              <div className="absolute top-4 right-4 z-30 flex items-center gap-1.5 rounded-full bg-[#23112B]/80 backdrop-blur-md p-1 border border-white/15">
-                <button
-                  type="button"
-                  onClick={() => setShowVisionMode(false)}
-                  className={`rounded-full px-3.5 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.14em] transition-colors cursor-pointer ${
-                    !showVisionMode
-                      ? 'bg-[#EE6B96] text-[#23112B]'
-                      : 'text-white/80 hover:text-white'
-                  }`}
-                >
-                  Foto Real Hoy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowVisionMode(true)}
-                  className={`rounded-full px-3.5 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.14em] transition-colors cursor-pointer ${
-                    showVisionMode
-                      ? 'bg-[#EE6B96] text-[#23112B]'
-                      : 'text-white/80 hover:text-white'
-                  }`}
-                >
-                  Proyección 3D
-                </button>
-              </div>
-
-              {/* Single Clean Supporting Line at Bottom */}
-              <div className="absolute inset-x-0 bottom-0 z-30 p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full bg-[#EE6B96] px-3.5 py-1 font-dm text-[10px] font-bold uppercase tracking-[0.18em] text-[#23112B]">
-                    {currentEvidence.badge}
+                  <span className="pointer-events-none absolute bottom-4 left-4 rounded-full bg-[#23112B]/85 px-4 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-white">
+                    Obra Real Hoy
                   </span>
-                  <p className="font-dm text-xs sm:text-sm font-medium text-white">
-                    {currentEvidence.caption}
-                  </p>
+                  <span className="pointer-events-none absolute bottom-4 right-4 rounded-full bg-white/95 px-4 py-1.5 font-dm text-[11px] font-bold uppercase tracking-[0.18em] text-[#361D42]">
+                    Proyección
+                  </span>
                 </div>
 
-                <span className="font-dm text-[11px] text-[#EAE3F2]/80">
-                  {FLAMINGO_BRAND.locationReference}
+                {/* Persistent Video Wrapper Layer */}
+                <div
+                  className={`
+                    absolute inset-0 transition-opacity duration-200
+                    ${showVideo ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none -z-10'}
+                  `}
+                >
+                  {showVideo && (
+                    <video
+                      key={currentZone.videoUrl}
+                      src={currentZone.videoUrl}
+                      poster={currentZone.visionImg}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Clean Footer Strip Below Frame */}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-dm text-[#361D42]/75 px-1">
+                <span>
+                  {showVideo
+                    ? 'Reproduciendo secuencia Google Flow de transformación en alta definición'
+                    : 'Arrastra la línea central para comparar Obra Real vs. Proyección'}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setShowVideo((v) => !v)}
+                  className="font-bold uppercase tracking-[0.16em] text-[#361D42] hover:text-[#EE6B96] underline underline-offset-4 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#361D42]"
+                >
+                  {showVideo ? 'Volver al Comparador' : 'Ver Video de Transformación'}
+                </button>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          3. SECCIÓN "REGISTRO REAL EN TERRENO" (2-COL PHOTOGRAPHY GRID)
+         ===================================================================== */}
+      <section id="aledanos" className="bg-[#F5F1FA] py-24 px-6 sm:px-14 lg:px-20">
+        <div className="max-w-7xl mx-auto space-y-14">
+          <div className="text-center space-y-3 gsap-editorial-reveal">
+            <span className="font-dm text-xs font-bold uppercase tracking-[0.24em] text-[#515B1B]">
+              TRANSPARENCIA Y SEGURIDAD JURÍDICA
+            </span>
+            <h2 className="font-geista font-normal text-4xl sm:text-6xl text-[#361D42]">
+              <span>Obra Real y </span>
+              <span className="italic text-[#EE6B96]">Entorno Consolidado</span>
+            </h2>
+            <p className="font-dm text-base text-[#361D42]/75 max-w-2xl mx-auto">
+              Registro fotográfico real en Prolongación Jr. Cuzco s/n, a solo 30 metros del Colegio
+              Virgen Dolorosa en Tarapoto.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 gsap-editorial-reveal">
+            {ALEDANOS_ITEMS.map((item) => (
+              <figure key={item.title} className="space-y-4 group">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-2xl bg-[#EAE3F2] shadow-sm">
+                  <img
+                    src={item.src}
+                    alt={item.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+                <figcaption className="space-y-1 px-1">
+                  <h3 className="font-geista text-2xl text-[#23112B]">{item.title}</h3>
+                  <p className="font-dm text-sm text-[#361D42]/75 leading-relaxed">
+                    {item.subtitle}
+                  </p>
+                </figcaption>
+              </figure>
+            ))}
           </div>
         </div>
       </section>

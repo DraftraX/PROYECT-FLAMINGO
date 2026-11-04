@@ -69,84 +69,83 @@ async function runVerification() {
     await page.goto(LOCAL_URL, { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(800);
 
-    // 1. Capture Hero with anatomical Flamingo Wing Mask + 3 floating pink feathers
-    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_hero_wing_mask.png') });
+    // 1. Capture Restored Hero (PeruBuilds + Selva Profunda Frosted Portal + 150-Frame Sequence)
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_restored_hero.png') });
 
-    // 2. Scroll to Sección A: Showcase Cinemático con Narración de Audio
+    // 2. Scroll to #nosotros (Reconstructed Logo + Manifesto)
     await page.evaluate(() => {
-      document.getElementById('entorno-tarapoto')?.scrollIntoView({ behavior: 'instant' });
+      document.getElementById('nosotros')?.scrollIntoView({ behavior: 'instant' });
+    });
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_nosotros_logo.png') });
+
+    // 3. Scroll to #tarapoto-video (Real Documentary Video + Peruvian Neural Voiceover Toggle)
+    await page.evaluate(() => {
+      document.getElementById('tarapoto-video')?.scrollIntoView({ behavior: 'instant' });
     });
     await page.waitForTimeout(700);
-    const audioBtn = page.locator('[data-testid="toggle-audio-tour"]');
-    await audioBtn.click();
+    const voiceBtn = page.locator('#tarapoto-video button', { hasText: /Escuchar con voz/i });
+    await voiceBtn.click();
     await page.waitForTimeout(400);
     const isVideoUnmuted = await page.evaluate(() => {
-      const v = document.querySelector('#entorno-tarapoto video');
+      const v = document.querySelector('#tarapoto-video video');
       return v ? v.muted === false : false;
     });
-    console.log('[Playwright] Audio Tour activado (video.muted === false):', isVideoUnmuted);
+    console.log('[Playwright] Voz narrada activada (video.muted === false):', isVideoUnmuted);
     await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_tarapoto_video.png') });
 
-    // 3. Scroll to Sección B: Abanico Interactivo de Lotes (160m² & 200m²) + Widget Táctil de Obra
+    // 4. Scroll to #proyecto (Obra Real vs. Proyección Comparator)
     await page.evaluate(() => {
-      document.getElementById('abanico-lotes')?.scrollIntoView({ behavior: 'instant' });
-    });
-    await page.waitForTimeout(800);
-    const porticoPill = page.locator('button', { hasText: /Pórtico en Piedra y Madera/i });
-    if (await porticoPill.count()) {
-      await porticoPill.click();
-      await page.waitForTimeout(300);
-    }
-    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_locket_lots_widget.png') });
-
-    // 4. Test Slide-Over Contact Drawer opening from 200 m² Lot Card with automatic preselection
-    const quote200Btn = page.locator('[data-testid="quote-200-btn"]');
-    await quote200Btn.click();
-    await page.waitForTimeout(550);
-    const drawerState = await page.evaluate(() => {
-      const dialog = document.querySelector('[data-testid="contact-drawer"]');
-      const isOpen = dialog ? dialog.getAttribute('data-open') === 'true' : false;
-      const selected200 = dialog ? dialog.innerHTML.includes('Lote Amplio · 200 m²') : false;
-      return { isOpen, selected200 };
-    });
-    console.log('[Playwright] Drawer abierto desde tarjeta 200 m²:', drawerState);
-    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_contact_drawer.png') });
-
-    // Close Drawer
-    const closeDrawerBtn = page.locator('[role="dialog"] button[aria-label*="Cerrar"]');
-    await closeDrawerBtn.click();
-    await page.waitForTimeout(450);
-
-    // 5. Scroll to Sección C: Explorador Inmersivo + Tarjeta Horizontal de Cierre (#2B1436)
-    await page.evaluate(() => {
-      document.getElementById('explorador-360')?.scrollIntoView({ behavior: 'instant' });
+      document.getElementById('proyecto')?.scrollIntoView({ behavior: 'instant' });
     });
     await page.waitForTimeout(700);
-    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_explorador_cierre.png') });
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_proyecto_comparador.png') });
 
-    // 6. Verify DOM Cleanliness (Deleted bloated sections must NOT exist)
+    // 5. Scroll to #lotizador-360 (Official 68-Lot Masterplan + 360° Viewer)
+    await page.evaluate(() => {
+      document.getElementById('lotizador-360')?.scrollIntoView({ behavior: 'instant' });
+    });
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_masterplan_oficial.png') });
+
+    // 6. Scroll to #tarapoto-maravillas ("Una vida sin filtros" + Biodiversity Gallery)
+    await page.evaluate(() => {
+      document.getElementById('tarapoto-maravillas')?.scrollIntoView({ behavior: 'instant' });
+    });
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_tarapoto_maravillas.png') });
+
+    // 7. Scroll to #contacto & Footer
+    await page.evaluate(() => {
+      document.getElementById('contacto')?.scrollIntoView({ behavior: 'instant' });
+    });
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_contact_footer.png') });
+
+    // 8. Audit Restored DOM & Antislop Compliance
     const domAudit = await page.evaluate(() => {
       const text = document.body.innerText;
       const html = document.body.innerHTML;
       return {
-        hasWingMaskClipPath: Boolean(document.getElementById('flamingoWingMask')),
-        removedGallitoRocas: !text.includes('Gallito de las Rocas'),
-        removedMariposas: !text.includes('Mariposas de Cordillera Escalera'),
-        removedVidaSinFiltros: !text.includes('Una vida sin filtros'),
-        removedOldStaticForm: !text.includes('Separa tu lote hoy mismo'),
-        removedOld4CardObra: !text.includes('Obra Real y Entorno Consolidado'),
+        hasHeroSection: Boolean(document.getElementById('preventa-scroll-stage')),
+        hasNosotrosSection: Boolean(document.getElementById('nosotros')),
+        hasTarapotoVideoSection: Boolean(document.getElementById('tarapoto-video')),
+        hasProyectoSection: Boolean(document.getElementById('proyecto')),
+        hasLotizadorSection: Boolean(document.getElementById('lotizador-360')),
+        hasMaravillasSection: Boolean(document.getElementById('tarapoto-maravillas')),
+        hasUbicacionSection: Boolean(document.getElementById('ubicacion')),
+        hasContactoSection: Boolean(document.getElementById('contacto')),
+        noEmDashInText: !text.includes('—'),
+        noDecorativeArrowInButtons: !text.includes('→'),
         hasPhone: html.includes('+51 989 195 093'),
         hasEmail: html.includes('aurora.aybar@gmail.com'),
         hasInstagram: html.includes('https://www.instagram.com/inmobiliaria.flamingo/'),
         hasFacebook: html.includes('https://www.facebook.com/profile.php?id=61583317215238'),
-        hasClosingCardHeadline: text.includes(
-          'Tu terreno propio en Tarapoto, listo para construir hoy'
-        ),
       };
     });
-    console.log('[Playwright] Auditoría de limpieza DOM y elementos clave:', domAudit);
+    console.log('[Playwright] Auditoría DOM y Antislop:', domAudit);
 
-    // 7. Mobile Viewport Verification (390x844)
+    // 9. Mobile Viewport Verification (390x844)
     console.log('[Playwright] Iniciando verificación Mobile (390x844)...');
     const mobileCtx = await browser.newContext({
       viewport: { width: 390, height: 844 },
@@ -162,21 +161,9 @@ async function runVerification() {
     await mPage.goto(LOCAL_URL, { waitUntil: 'networkidle', timeout: 30000 });
     await mPage.waitForTimeout(600);
 
-    // Open Drawer from Header "Contáctanos" button on Mobile
-    const headerContactBtn = mPage.locator('[data-testid="header-contact-btn"]');
-    await headerContactBtn.click();
-    await mPage.waitForTimeout(450);
-    const mobileDrawerOpen = await mPage.evaluate(() => {
-      const dialog = document.querySelector('[data-testid="contact-drawer"]');
-      return dialog ? dialog.getAttribute('data-open') === 'true' : false;
-    });
-    await mPage.locator('[role="dialog"] button[aria-label*="Cerrar"]').click();
-    await mPage.waitForTimeout(350);
-
     const hasHorizontalOverflow = await mPage.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth + 2
     );
-    console.log('[Playwright] Mobile Drawer OK:', mobileDrawerOpen);
     console.log('[Playwright] Mobile horizontal overflow:', hasHorizontalOverflow);
 
     console.log(`[Playwright] Errores de consola: ${consoleErrors.length}`);
@@ -187,9 +174,6 @@ async function runVerification() {
       pageErrors.length === 0 &&
       !hasHorizontalOverflow &&
       isVideoUnmuted &&
-      drawerState.isOpen &&
-      drawerState.selected200 &&
-      mobileDrawerOpen &&
       Object.values(domAudit).every(Boolean);
 
     if (!allChecksPassed) {
@@ -198,8 +182,6 @@ async function runVerification() {
         pageErrors,
         hasHorizontalOverflow,
         isVideoUnmuted,
-        drawerState,
-        mobileDrawerOpen,
         domAudit,
       });
       process.exitCode = 1;

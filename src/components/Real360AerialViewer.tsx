@@ -375,11 +375,13 @@ export const Real360AerialViewer: React.FC = () => {
                 (i) => (i - 1 + REAL_DRIVE_PANORAMAS_360.length) % REAL_DRIVE_PANORAMAS_360.length
               )
             }
-            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#361D42]"
             title="Vista anterior"
             aria-label="Vista anterior"
           >
-            ←
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
 
           {/* Numbered Dots 1..8 */}
@@ -389,9 +391,9 @@ export const Real360AerialViewer: React.FC = () => {
                 key={p.id}
                 type="button"
                 onClick={() => setSelectedIdx(idx)}
-                className={`h-8 w-8 rounded-full font-dm text-xs font-bold transition-colors cursor-pointer ${
+                className={`h-8 w-8 rounded-full font-dm text-xs font-bold transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#361D42] ${
                   idx === selectedIdx
-                    ? 'bg-[#EE6B96] text-white'
+                    ? 'bg-[#EE6B96] text-[#23112B]'
                     : 'text-[#361D42]/70 hover:bg-[#EAE3F2]'
                 }`}
               >
@@ -403,11 +405,13 @@ export const Real360AerialViewer: React.FC = () => {
           <button
             type="button"
             onClick={() => setSelectedIdx((i) => (i + 1) % REAL_DRIVE_PANORAMAS_360.length)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-[#361D42] hover:bg-[#EAE3F2] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#361D42]"
             title="Siguiente vista"
             aria-label="Siguiente vista"
           >
-            →
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
 
           <div className="h-5 w-px bg-[#361D42]/15 mx-1 hidden sm:block" />

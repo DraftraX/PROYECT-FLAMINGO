@@ -32,17 +32,20 @@ export interface VideoChapterSpec {
   startSec: number;
   endSec: number;
   title: string;
-  subtitle: string;
+  description: string;
   thumb: string;
 }
 
-export interface ObraEvidencePill {
+export interface EditorialCardSpec {
   id: string;
-  pillLabel: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  ctaLabel: string;
   image: string;
-  visionImage: string;
-  caption: string;
-  badge: string;
+  objectPosition?: string;
+  credit: string;
+  whatsappMsg: string;
 }
 
 export const FLAMINGO_BRAND = {
@@ -121,70 +124,109 @@ export const TARAPOTO_VIDEO_CHAPTERS: VideoChapterSpec[] = [
   {
     id: 'cordillera',
     num: '01',
-    label: '01. Cordillera Escalera',
+    label: 'Cordillera Escalera',
     startSec: 0,
-    endSec: 17.0,
-    title: 'Aire puro y clima privilegiado frente a la Cordillera Escalera',
-    subtitle:
-      'Vivir en Tarapoto es despertar frente al aire puro de la Cordillera Escalera, un santuario natural de montañas verdes, clima privilegiado todo el año y aguas cristalinas.',
+    endSec: 9.5,
+    title: 'ACR Cordillera Escalera: el pulmón verde de Tarapoto',
+    description:
+      'Más de 149,000 hectáreas de bosques nubosos protegidos que regulan el clima cálido y abastecen de agua cristalina al valle de Tarapoto.',
     thumb: '/tarapoto/cordillera-escalera-bosque.webp',
   },
   {
     id: 'turismo',
     num: '02',
-    label: '02. Ruta Turística',
-    startSec: 17.0,
-    endSec: 34.0,
-    title: 'Catarata de Ahuashiyacu, Laguna Azul y alta demanda turística',
-    subtitle:
-      'A pocos minutos de joyas naturales como la Catarata de Ahuashiyacu y la Laguna Azul, Tarapoto se consolida como el destino de mayor crecimiento y valorización inmobiliaria en la Amazonía.',
+    label: 'Turismo y Cataratas',
+    startSec: 9.5,
+    endSec: 19.0,
+    title: 'Catarata de Ahuashiyacu y Laguna Azul de Sauce',
+    description:
+      'Maravillas naturales a pocos minutos de la ciudad que impulsan el crecimiento turístico, gastronómico e inmobiliario de San Martín.',
     thumb: '/tarapoto/catarata-ahuashiyacu.webp',
   },
   {
-    id: 'plusvalia',
+    id: 'biodiversidad',
     num: '03',
-    label: '03. Plusvalía en Tarapoto',
-    startSec: 34.0,
-    endSec: 51.0,
-    title: 'Vuelo real sobre Flamingo Residencial: seguridad urbana y legal',
-    subtitle:
-      'En medio de esta alta valorización nace Flamingo Residencial: lotes de 160 y 200 m² en Prolongación Jr. Cuzco, a solo 30 metros del Colegio Virgen Dolorosa, con pórtico construido, agua, desagüe, luz, título independizado y entrega inmediata.',
+    label: 'Fauna y Flora',
+    startSec: 19.0,
+    endSec: 27.5,
+    title: 'Santuario del Gallito de las Rocas, Mariposas y Heliconias',
+    description:
+      'Hogar de aves emblemáticas como el Rupicola peruvianus, mariposas amazónicas y especies botánicas tropicales que rodean el valle.',
+    thumb: '/tarapoto/fauna-gallito-rocas.webp',
+  },
+  {
+    id: 'vuelo-dron',
+    num: '04',
+    label: 'Dron Real Flamingo',
+    startSec: 27.5,
+    endSec: 39.0,
+    title: 'Vuelo DJI Real sobre Residencial Flamingo en Tarapoto',
+    description:
+      'Recorrido aéreo real atravesando el pórtico de piedra y madera, la alameda de palmeras y los lotes de 160 m² y 200 m² a 30m del Colegio Virgen Dolorosa.',
     thumb: '/drive/2d/img-0760.webp',
+  },
+  {
+    id: 'vision',
+    num: '05',
+    label: 'Proyección Flow',
+    startSec: 39.0,
+    endSec: 48.0,
+    title: 'Urbanismo Armónico con Parque Central y Entrega Inmediata',
+    description:
+      'Proyección arquitectónica generada con Google Flow mostrando la consolidación de vías, pórtico y áreas verdes con título independizado.',
+    thumb: '/urbanization/flamingo-render-clean.webp',
   },
 ];
 
-export const OBRA_EVIDENCE_PILLS: ObraEvidencePill[] = [
+export const SELVA_PROFUNDA_CARDS: EditorialCardSpec[] = [
   {
-    id: 'colegio',
-    pillLabel: '📍 A 30m Col. Virgen Dolorosa',
-    image: '/drive/2d/img-0752.webp',
-    visionImage: '/drive/2d/vision-avenue.webp',
-    caption: 'Prolongación Jr. Cuzco s/n, Tarapoto · A 30 metros reales del Colegio Virgen Dolorosa',
-    badge: 'UBICACIÓN REAL VERIFICADA',
+    id: 'cordillera-card',
+    eyebrow: 'DESCUBRE',
+    title: 'Cordillera Escalera y Clima Privilegiado',
+    description:
+      'Vive al pie del Área de Conservación Regional Cordillera Escalera, donde las montañas verdes abrazan a Tarapoto con aire puro, brisa fresca y paisajes amazónicos.',
+    ctaLabel: 'Explorar ubicación',
+    image: '/tarapoto/cordillera-escalera-valle.webp',
+    credit: 'Fotografía real: ACR Cordillera Escalera, San Martín',
+    whatsappMsg:
+      'Hola Flamingo Residencial, me encanta el entorno natural de Tarapoto y la Cordillera Escalera. Deseo conocer los lotes disponibles.',
   },
   {
-    id: 'portico',
-    pillLabel: '🏛️ Pórtico en Piedra y Madera',
-    image: '/drive/2d/img-0760.webp',
-    visionImage: '/drive/2d/vision-portico.webp',
-    caption: 'Prolongación Jr. Cuzco s/n, Tarapoto · Acceso monumental 100% ejecutado en obra',
-    badge: 'OBRA CIVIL ENTREGADA',
+    id: 'turismo-card',
+    eyebrow: 'TURISMO Y BIENESTAR',
+    title: 'Catarata de Ahuashiyacu y Laguna Azul',
+    description:
+      'Tarapoto es el epicentro turístico y aéreo de la Amazonía peruana. Invertir aquí te conecta con cataratas cristalinas, lagunas navegables y alta demanda de vivienda.',
+    ctaLabel: 'Solicitar dossier de inversión',
+    image: '/tarapoto/laguna-azul-sauce.webp',
+    credit: 'Fotografía real: Laguna Azul de Sauce, Tarapoto',
+    whatsappMsg:
+      'Hola Flamingo Residencial, deseo información sobre el potencial de inversión y plusvalía en Tarapoto.',
   },
   {
-    id: 'servicios',
-    pillLabel: '💧 Agua, Desagüe y Luz',
-    image: '/drive/2d/img-0702.webp',
-    visionImage: '/drive/2d/vision-avenue.webp',
-    caption: 'Prolongación Jr. Cuzco s/n, Tarapoto · Cajas domiciliarias de agua y red sanitaria en vía',
-    badge: 'HABILITACIÓN URBANA',
+    id: 'fauna-flora-card',
+    eyebrow: 'BIODIVERSIDAD VIVA',
+    title: 'Fauna Silvestre y Flora Amazónica',
+    description:
+      'Un ecosistema único donde conviven el Gallito de las Rocas, mariposas multicolores de montaña, palmeras reales y heliconias tropicales que inspiran a Flamingo Residencial.',
+    ctaLabel: 'Ver galería natural',
+    image: '/tarapoto/fauna-gallito-rocas.webp',
+    objectPosition: '78% 35%',
+    credit: 'Fotografía real: Rupicola peruvianus y flora amazónica',
+    whatsappMsg:
+      'Hola Flamingo Residencial, quiero conocer más sobre el proyecto y sus áreas verdes en Tarapoto.',
   },
   {
-    id: 'titulo',
-    pillLabel: '📜 Título Independizado',
+    id: 'lotes-card',
+    eyebrow: 'OPORTUNIDAD REAL',
+    title: 'Lotes de 160 m² y 200 m² en Tarapoto',
+    description:
+      'Ubicados en Prolongación Jr. Cuzco s/n, a solo 30 metros del Colegio Virgen Dolorosa. Pórtico construido, agua, desagüe, luz, título independizado y entrega inmediata.',
+    ctaLabel: 'Cotizar mi lote ahora',
     image: '/drive/2d/img-0751.webp',
-    visionImage: '/drive/2d/vision-park.webp',
-    caption: 'Prolongación Jr. Cuzco s/n, Tarapoto · Parque central con palmeras y entrega inmediata',
-    badge: 'SEGURIDAD JURÍDICA',
+    credit: 'Fotografía real en obra: Residencial Flamingo, Tarapoto',
+    whatsappMsg:
+      'Hola Flamingo Residencial, deseo cotizar un lote de 160 m² o 200 m² con entrega inmediata en Tarapoto.',
   },
 ];
 
@@ -193,7 +235,7 @@ export const URBAN_SERVICES: UrbanServiceItem[] = [
     id: 'agua',
     title: 'AGUA',
     subtitle: 'Red Matriz Potable',
-    detail: 'Conexión domiciliaria instalada a pie de cada lote de 160 m² y 200 m².',
+    detail: 'Conexión domiciliaria proyectada a pie de cada lote de 160 m² y 200 m².',
     progressThreshold: 0.28,
     coords: { xPct: 39, yPct: 56 },
   },
@@ -224,7 +266,7 @@ export const SCROLL_STAGES: ScrollStageSpec[] = [
     highlight: 'Lotes de 160 m² y 200 m²',
     subtitle: 'Con título de propiedad. ¡Entrega Inmediata!',
     description:
-      'Desliza hacia abajo para recorrer cómo el valle de Tarapoto se transforma en tu próxima propiedad residencial.',
+      'Desliza hacia abajo para presenciar cómo el valle de Tarapoto se transforma paso a paso en la lotización residencial mejor ubicada.',
   },
   {
     id: 'tramo-2',
@@ -234,26 +276,26 @@ export const SCROLL_STAGES: ScrollStageSpec[] = [
     highlight: 'Agua · Desagüe · Alumbrado Público',
     subtitle: 'Infraestructura lista para construir tu hogar o asegurar tu inversión.',
     description:
-      'Vías afirmadas, manzanas trazadas con precisión topográfica y factibilidad real de servicios básicos.',
+      'Vías afirmadas con sardineles, manzanas trazadas con precisión topográfica y factibilidad de servicios básicos completos.',
   },
   {
     id: 'tramo-3',
     range: [0.55, 0.85],
-    badge: 'UBICACIÓN ESTRATÉGICA EN TARAPOTO',
+    badge: 'UBICACIÓN ESTRATÉGICA CONSOLIDADA',
     title: 'ENTORNO PRIVILEGIADO',
     highlight: 'A solo 30 metros del Colegio Virgen Dolorosa',
     subtitle: 'Seguridad jurídica total: Título de propiedad independizado y Entrega Inmediata.',
     description:
-      'En Prolongación Jr. Cuzco s/n, con vista directa a la Cordillera Escalera y alta valorización garantizada.',
+      'Conectividad inmediata a vía principal en Tarapoto, entorno educativo consolidado y alta plusvalía residencial garantizada.',
   },
   {
     id: 'tramo-4',
     range: [0.85, 1.0],
-    badge: ' ENTREGA INMEDIATA',
+    badge: 'CIERRE COMERCIAL Y VISOR 360°',
     title: 'ELIGE TU LOTE HOY',
     highlight: 'Preventa Exclusiva · Atención Directa',
-    subtitle: 'Explora las tipologías de 160 m² y 200 m² y el Masterplan 360° a continuación.',
+    subtitle: 'Explora el Recorrido Virtual 360° y el Plano Interactivo de Lotes a continuación.',
     description:
-      'Separa tu lote directamente con nuestra central oficial de preventa.',
+      'Reserva tu lote de 160 m² o 200 m² directamente con nuestros asesores oficiales por WhatsApp.',
   },
 ];
