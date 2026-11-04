@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-Downloads verified real Wikimedia Commons media of Tarapoto & Cordillera Escalera,
-prepares clean WebP assets in public/tarapoto/ and public/urbanization/,
-and renders the 1080p HD documentary & project showcase video:
-  - public/videos/tarapoto-flamingo-reel.mp4
-  - public/videos/tarapoto-flamingo-reel.webm
+Builds the 46-second, 30fps 1080p HD synergistic commercial & documentary video
+WITH synchronized Spanish voiceover narration + warm ambient soundtrack:
+  - public/videos/tarapoto-flamingo-reel.mp4 (H.264 + AAC 192kbps)
+  - public/videos/tarapoto-flamingo-reel.webm (VP9 + Opus 160kbps)
+  - public/videos/tarapoto-voiceover.mp3
   - public/videos/tarapoto-flamingo-poster.webp
 """
 import subprocess
+import urllib.parse
 import urllib.request
+import wave
 from pathlib import Path
 import cv2
 import numpy as np
@@ -18,107 +20,212 @@ ROOT = Path(r'c:\Users\USUARIO\Desktop\PROYECT-FLAMINGO')
 CACHE_DIR = ROOT / 'assets-input' / 'tarapoto-commons'
 OUT_TARAPOTO = ROOT / 'public' / 'tarapoto'
 OUT_VIDEOS = ROOT / 'public' / 'videos'
-FFMPEG_BIN = ROOT / 'assets-input' / 'video-tools' / 'imageio_ffmpeg' / 'binaries' / 'ffmpeg-win-x86_64-v7.1.exe'
+FFMPEG_BIN = (
+    ROOT
+    / 'assets-input'
+    / 'video-tools'
+    / 'imageio_ffmpeg'
+    / 'binaries'
+    / 'ffmpeg-win-x86_64-v7.1.exe'
+)
 
-COMMONS_ASSETS = [
+NARRATION_CHAPTERS = [
     {
-        'slug': 'cordillera-escalera-bosque',
-        'url': 'https://upload.wikimedia.org/wikipedia/commons/3/30/%C3%81rea_de_conservaci%C3%B3n_regional_Cordillera_Escalera_01.jpg',
-        'title': 'ACR Cordillera Escalera · Bosque Nuboso',
-        'credit': 'Wikimedia Commons · CC BY-SA 4.0',
+        'id': 'ch1',
+        'start_sec': 0.8,
+        'phrases': [
+            'Vivir en Tarapoto es despertar frente al aire puro de la Cordillera Escalera,',
+            'un santuario natural de montañas verdes, clima privilegiado todo el año y aguas cristalinas.',
+        ],
     },
     {
-        'slug': 'cordillera-escalera-valle',
-        'url': 'https://upload.wikimedia.org/wikipedia/commons/4/46/%C3%81rea_de_conservaci%C3%B3n_regional_Cordillera_Escalera_03.jpg',
-        'title': 'Cordillera Escalera · Valle y Montañas Verdes',
-        'credit': 'Wikimedia Commons · CC BY-SA 4.0',
+        'id': 'ch2',
+        'start_sec': 14.8,
+        'phrases': [
+            'A pocos minutos de joyas naturales como la Catarata de Ahuashiyacu y la Laguna Azul,',
+            'Tarapoto se consolida como el destino de mayor crecimiento y valorización inmobiliaria en la Amazonía.',
+        ],
     },
     {
-        'slug': 'tarapoto-ruta-cordillera',
-        'url': 'https://upload.wikimedia.org/wikipedia/commons/b/bd/Camino_a_la_Cordillera_Escalera%2C_Tarapoto%2C_Per%C3%BA.jpg',
-        'title': 'Ruta escénica hacia la Cordillera Escalera, Tarapoto',
-        'credit': 'Wikimedia Commons · CC BY-SA 4.0',
-    },
-    {
-        'slug': 'catarata-ahuashiyacu',
-        'url': 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Cataras_de_Ahuashiyacu.jpg',
-        'title': 'Catarata de Ahuashiyacu · Cordillera Escalera',
-        'credit': 'Wikimedia Commons · CC BY-SA 3.0',
-    },
-    {
-        'slug': 'laguna-azul-sauce',
-        'url': 'https://upload.wikimedia.org/wikipedia/commons/0/01/Laguna_de_Sauce%2C_San_Mart%C3%ADn03.jpg',
-        'title': 'Laguna Azul de Sauce · Tarapoto, San Martín',
-        'credit': 'Wikimedia Commons · CC BY-SA 4.0',
-    },
-    {
-        'slug': 'fauna-gallito-rocas',
-        'url': 'https://upload.wikimedia.org/wikipedia/commons/f/f6/Rupicola_peruvianus%2C_Manu%2C_Peru_2.jpg',
-        'title': 'Gallito de las Rocas (Rupicola peruvianus)',
-        'credit': 'Wikimedia Commons · CC BY 2.0',
-    },
-    {
-        'slug': 'fauna-mariposa-cordillera',
-        'url': 'https://upload.wikimedia.org/wikipedia/commons/5/57/Mariposa_en_Cordillera_Escalera.jpg',
-        'title': 'Mariposa nativa en la Cordillera Escalera',
-        'credit': 'Wikimedia Commons · CC BY-SA 4.0',
-    },
-    {
-        'slug': 'flora-heliconia-amazonica',
-        'url': 'https://upload.wikimedia.org/wikipedia/commons/6/65/Heliconia_orthotricha_%28Heliconiaceae%29_%2830415961528%29.jpg',
-        'title': 'Heliconia orthotricha · Flora Amazónica',
-        'credit': 'Wikimedia Commons · CC BY 2.0',
+        'id': 'ch3',
+        'start_sec': 28.8,
+        'phrases': [
+            'En medio de esta alta valorización nace Flamingo Residencial:',
+            'lotes de 160 y 200 metros cuadrados en Prolongación Jirón Cuzco, a solo 30 metros del Colegio Virgen Dolorosa.',
+            'Con pórtico construido, agua, desagüe, luz, título independizado y entrega inmediata.',
+            'Naturaleza extraordinaria afuera; seguridad urbana y legal dentro de tu propiedad.',
+        ],
     },
 ]
 
 
-def download_and_optimize_assets() -> dict[str, Path]:
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    OUT_TARAPOTO.mkdir(parents=True, exist_ok=True)
-    OUT_VIDEOS.mkdir(parents=True, exist_ok=True)
-
-    paths: dict[str, Path] = {}
+def fetch_tts_phrase_mp3(text: str, out_mp3: Path) -> bool:
+    if out_mp3.exists() and out_mp3.stat().st_size > 1500:
+        return True
+    q = urllib.parse.quote(text)
+    url = f'https://translate.google.com/translate_tts?ie=UTF-8&tl=es-US&client=tw-ob&q={q}'
     headers = {
-        'User-Agent': 'FlamingoResidencialShowroomBot/1.0 (https://proyect-flamingo.vercel.app; aurora.aybar@gmail.com)'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
-
-    for item in COMMONS_ASSETS:
-        slug = item['slug']
-        raw_path = CACHE_DIR / f'{slug}.jpg'
-        webp_path = OUT_TARAPOTO / f'{slug}.webp'
-
-        if not raw_path.exists() or raw_path.stat().st_size < 10_000:
-            print(f'[Download] Fetching {slug} from Wikimedia Commons...')
-            req = urllib.request.Request(item['url'], headers=headers)
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                raw_path.write_bytes(resp.read())
-
-        if not webp_path.exists():
-            with Image.open(raw_path) as im:
-                im_rgb = im.convert('RGB')
-                w, h = im_rgb.size
-                if max(w, h) > 2200:
-                    scale = 2200.0 / max(w, h)
-                    im_rgb = im_rgb.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
-                im_rgb.save(webp_path, 'WEBP', quality=86, method=6)
-                print(f'[WebP] Saved {webp_path.name} ({im_rgb.size[0]}x{im_rgb.size[1]})')
-
-        paths[slug] = webp_path
-
-    render_src = ROOT / 'public' / 'urbanization' / 'flamingo-render-oficial.png'
-    render_clean = ROOT / 'public' / 'urbanization' / 'flamingo-render-clean.webp'
-    if render_src.exists() and not render_clean.exists():
-        with Image.open(render_src) as r_im:
-            r_rgb = r_im.convert('RGB')
-            rw, rh = r_rgb.size
-            cropped = r_rgb.crop((0, 0, rw, int(rh * 0.655)))
-            cropped.save(render_clean, 'WEBP', quality=90, method=6)
-            print(f'[Clean Render] Saved {render_clean.name} ({cropped.size[0]}x{cropped.size[1]})')
-
-    return paths
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = resp.read()
+            if len(data) > 1000:
+                out_mp3.write_bytes(data)
+                return True
+    except Exception as e:
+        print(f'[TTS] Warning fetching phrase via web TTS: {e}')
+    return False
 
 
-def load_cover_1080p(path: Path, overscan: float = 1.18) -> np.ndarray:
+def decode_audio_to_mono_44k(audio_path: Path) -> np.ndarray:
+    cmd = [
+        str(FFMPEG_BIN),
+        '-y',
+        '-i',
+        str(audio_path),
+        '-f',
+        'f32le',
+        '-acodec',
+        'pcm_f32le',
+        '-ac',
+        '1',
+        '-ar',
+        '44100',
+        '-',
+    ]
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True)
+    samples = np.frombuffer(proc.stdout, dtype=np.float32).copy()
+    # Trim leading/trailing silence (< 0.008)
+    non_silent = np.where(np.abs(samples) > 0.008)[0]
+    if len(non_silent) > 100:
+        s0 = max(0, int(non_silent[0]) - int(0.05 * 44100))
+        s1 = min(len(samples), int(non_silent[-1]) + int(0.12 * 44100))
+        samples = samples[s0:s1]
+    return samples
+
+
+def build_synergistic_audio(duration_sec: float = 52.0) -> Path:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    OUT_VIDEOS.mkdir(parents=True, exist_ok=True)
+    sr = 44100
+    total_samples = int(round(duration_sec * sr))
+
+    # 1. Synthesize warm, luxury ambient background soundtrack (Stereo)
+    t = np.linspace(0.0, duration_sec, total_samples, endpoint=False, dtype=np.float32)
+
+    # Chord progression: Fmaj9 -> Cmaj9 -> Dm9 -> Am9 (cycling every 11.5 seconds)
+    chords = [
+        [174.61, 220.00, 261.63, 329.63, 392.00],  # Fmaj9
+        [130.81, 196.00, 246.94, 293.66, 329.63],  # Cmaj9
+        [146.83, 220.00, 261.63, 329.63, 349.23],  # Dm9
+        [110.00, 164.81, 220.00, 246.94, 329.63],  # Am9
+    ]
+    pad_l = np.zeros(total_samples, dtype=np.float32)
+    pad_r = np.zeros(total_samples, dtype=np.float32)
+
+    chord_len = duration_sec / 4.0
+    for c_idx, freqs in enumerate(chords):
+        c_start = c_idx * chord_len
+        c_end = (c_idx + 1) * chord_len
+        # Smooth crossfade envelope for each chord
+        env = np.clip((t - (c_start - 1.2)) / 2.0, 0.0, 1.0) * np.clip(((c_end + 1.2) - t) / 2.0, 0.0, 1.0)
+        for f_idx, f in enumerate(freqs):
+            detune = 1.0 + (f_idx - 2) * 0.0008
+            vib = 0.0012 * np.sin(2.0 * np.pi * 0.25 * t + f_idx)
+            wave_l = np.sin(2.0 * np.pi * f * (1.0 + vib) * t) + 0.25 * np.sin(2.0 * np.pi * (f * 2.0) * t)
+            wave_r = np.sin(2.0 * np.pi * (f * detune) * (1.0 - vib) * t + 0.4) + 0.25 * np.sin(2.0 * np.pi * (f * 2.0 * detune) * t)
+            pad_l += env * wave_l * (0.032 / len(freqs))
+            pad_r += env * wave_r * (0.032 / len(freqs))
+
+    # Gentle crystalline harp/kalimba arpeggio notes (pentatonic C major: C5, D5, E5, G5, A5)
+    arp_freqs = [523.25, 587.33, 659.25, 783.99, 880.00, 659.25, 587.33, 523.25]
+    note_step = 1.4375  # s
+    for n_idx in range(int(duration_sec / note_step)):
+        n_time = n_idx * note_step + 0.3
+        i0 = int(n_time * sr)
+        n_dur = int(2.2 * sr)
+        i1 = min(total_samples, i0 + n_dur)
+        if i1 <= i0:
+            continue
+        nt = np.arange(i1 - i0, dtype=np.float32) / sr
+        freq = arp_freqs[n_idx % len(arp_freqs)]
+        # Plucked exponential decay envelope
+        n_env = (1.0 - np.exp(-nt * 45.0)) * np.exp(-nt * 2.1)
+        tone = np.sin(2.0 * np.pi * freq * nt) + 0.3 * np.sin(2.0 * np.pi * freq * 2.0 * nt) * np.exp(-nt * 5.0)
+        pan = 0.35 + 0.3 * ((n_idx % 3) - 1)
+        pad_l[i0:i1] += tone * n_env * 0.022 * pan
+        pad_r[i0:i1] += tone * n_env * 0.022 * (1.0 - pan)
+
+    # Master fade-in (1.2s) and fade-out (2.0s)
+    master_env = np.clip(t / 1.2, 0.0, 1.0) * np.clip((duration_sec - t) / 2.0, 0.0, 1.0)
+    pad_l *= master_env
+    pad_r *= master_env
+
+    # 2. Assemble Spanish Voiceover Track + sidechain ducking
+    vo_track = np.zeros(total_samples, dtype=np.float32)
+
+    for ch in NARRATION_CHAPTERS:
+        cursor_sample = int(round(ch['start_sec'] * sr))
+        for p_idx, phrase in enumerate(ch['phrases']):
+            mp3_cache = CACHE_DIR / f"vo_{ch['id']}_{p_idx}.mp3"
+            ok = fetch_tts_phrase_mp3(phrase, mp3_cache)
+            if ok:
+                samples = decode_audio_to_mono_44k(mp3_cache)
+                # Slightly warm and normalize voiceover
+                peak = np.max(np.abs(samples))
+                if peak > 0.01:
+                    samples = (samples / peak) * 0.82
+                end_sample = min(total_samples, cursor_sample + len(samples))
+                if end_sample > cursor_sample:
+                    vo_track[cursor_sample:end_sample] += samples[: end_sample - cursor_sample]
+                    cursor_sample = end_sample + int(0.24 * sr)  # natural breath pause between clauses
+
+    # Compute smooth ducking envelope so music lowers gently when voice speaks
+    vo_energy = np.abs(vo_track)
+    # 200ms moving average
+    win = int(0.20 * sr)
+    kernel = np.ones(win, dtype=np.float32) / win
+    vo_env = np.convolve(vo_energy, kernel, mode='same')
+    duck = 1.0 - 0.42 * np.clip(vo_env * 6.0, 0.0, 1.0)
+
+    mix_l = np.clip(pad_l * duck + vo_track * 0.92, -0.98, 0.98)
+    mix_r = np.clip(pad_r * duck + vo_track * 0.92, -0.98, 0.98)
+
+    stereo_int16 = np.empty((total_samples, 2), dtype=np.int16)
+    stereo_int16[:, 0] = (mix_l * 32767.0).astype(np.int16)
+    stereo_int16[:, 1] = (mix_r * 32767.0).astype(np.int16)
+
+    wav_path = CACHE_DIR / 'tarapoto-master-audio.wav'
+    with wave.open(str(wav_path), 'wb') as wf:
+        wf.setnchannels(2)
+        wf.setsampwidth(2)
+        wf.setframerate(sr)
+        wf.writeframes(stereo_int16.tobytes())
+
+    mp3_out = OUT_VIDEOS / 'tarapoto-voiceover.mp3'
+    subprocess.run(
+        [
+            str(FFMPEG_BIN),
+            '-y',
+            '-i',
+            str(wav_path),
+            '-codec:a',
+            'libmp3lame',
+            '-b:a',
+            '192k',
+            str(mp3_out),
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    print(f'[Audio] Generated synchronized voiceover + ambient soundtrack: {mp3_out.name}')
+    return wav_path
+
+
+def load_cover_1080p(path: Path, overscan: float = 1.20) -> np.ndarray:
     with Image.open(path) as im:
         rgb = np.array(im.convert('RGB'))
     bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
@@ -128,15 +235,14 @@ def load_cover_1080p(path: Path, overscan: float = 1.18) -> np.ndarray:
     scale = max(target_w / w, target_h / h)
     new_w = int(round(w * scale))
     new_h = int(round(h * scale))
-    resized = cv2.resize(bgr, (new_w, new_h), interpolation=cv2.INTER_LANCZOS4)
-    return resized
+    return cv2.resize(bgr, (new_w, new_h), interpolation=cv2.INTER_LANCZOS4)
 
 
 def sample_ken_burns(
     img_overscan: np.ndarray,
     t: float,
     zoom_start: float = 1.0,
-    zoom_end: float = 1.10,
+    zoom_end: float = 1.11,
     pan_x: tuple[float, float] = (-0.35, 0.35),
     pan_y: tuple[float, float] = (-0.25, 0.25),
 ) -> np.ndarray:
@@ -162,29 +268,21 @@ def sample_ken_burns(
     scale_x = crop_w / 1920.0
     scale_y = crop_h / 1080.0
 
-    M = np.array(
-        [
-            [scale_x, 0.0, src_x0],
-            [0.0, scale_y, src_y0],
-        ],
-        dtype=np.float32,
-    )
-    frame = cv2.warpAffine(
+    M = np.array([[scale_x, 0.0, src_x0], [0.0, scale_y, src_y0]], dtype=np.float32)
+    return cv2.warpAffine(
         img_overscan,
         M,
         (1920, 1080),
         flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP,
         borderMode=cv2.BORDER_REFLECT_101,
     )
-    return frame
 
 
 def make_cinematic_vignette() -> np.ndarray:
-    """Subtle top and bottom plum-tinted vignette so UI overlays read with maximum contrast."""
     overlay_np = np.zeros((1080, 1920, 4), dtype=np.uint8)
     y_coords = np.linspace(0.0, 1.0, 1080)[:, None]
     bottom_alpha = np.clip((y_coords - 0.58) / 0.42, 0.0, 1.0) ** 1.5 * 145.0
-    top_alpha = np.clip((0.18 - y_coords) / 0.18, 0.0, 1.0) ** 1.6 * 75.0
+    top_alpha = np.clip((0.18 - y_coords) / 0.18, 0.0, 1.0) ** 1.6 * 70.0
     scrim_alpha = np.maximum(bottom_alpha, top_alpha).astype(np.uint8)
 
     overlay_np[:, :, 0] = 34
@@ -217,10 +315,7 @@ def load_drone_frames(target_count: int) -> list[np.ndarray]:
         raw_frames.append(frame)
     cap.release()
 
-    if not raw_frames:
-        raise RuntimeError(f'No frames read from {drone_path}')
-
-    start_idx = min(12, len(raw_frames) - 1)
+    start_idx = min(10, len(raw_frames) - 1)
     indices = np.linspace(start_idx, len(raw_frames) - 1, target_count)
     out = []
     for idx in indices:
@@ -230,8 +325,7 @@ def load_drone_frames(target_count: int) -> list[np.ndarray]:
         if frac < 0.01 or i0 == i1:
             out.append(raw_frames[i0])
         else:
-            blended = cv2.addWeighted(raw_frames[i0], 1.0 - frac, raw_frames[i1], frac, 0.0)
-            out.append(blended)
+            out.append(cv2.addWeighted(raw_frames[i0], 1.0 - frac, raw_frames[i1], frac, 0.0))
     return out
 
 
@@ -248,7 +342,7 @@ def build_closing_brand_card(base_img: np.ndarray, logo_light_path: Path) -> np.
             scale = 420.0 / lh
             lg_resized = lg_rgba.resize((int(lw * scale), int(lh * scale)), Image.Resampling.LANCZOS)
             lx = (1920 - lg_resized.size[0]) // 2
-            ly = 160
+            ly = 155
             canvas.alpha_composite(lg_resized, (lx, ly))
 
     draw = ImageDraw.Draw(canvas)
@@ -263,88 +357,75 @@ def build_closing_brand_card(base_img: np.ndarray, logo_light_path: Path) -> np.
         font_p = ImageFont.load_default()
         font_b = ImageFont.load_default()
 
-    tagline = 'Tu santuario residencial en el corazón verde de Tarapoto'
+    tagline = 'Tu terreno propio en Tarapoto, listo para construir hoy'
     tw = draw.textlength(tagline, font=font_h)
-    draw.text(((1920 - tw) / 2, 635), tagline, font=font_h, fill=(245, 241, 250, 255))
+    draw.text(((1920 - tw) / 2, 632), tagline, font=font_h, fill=(245, 241, 250, 255))
 
     details = 'Lotes de 160 m² y 200 m²  ·  Prolongación Jr. Cuzco s/n, a 30m del Colegio Virgen Dolorosa'
     dw = draw.textlength(details, font=font_p)
-    draw.text(((1920 - dw) / 2, 708), details, font=font_p, fill=(234, 227, 242, 225))
+    draw.text(((1920 - dw) / 2, 706), details, font=font_p, fill=(234, 227, 242, 225))
 
     cta = '+51 989 195 093   ·   @ResidencialFlamingo   ·   aurora.aybar@gmail.com'
     cw = draw.textlength(cta, font=font_b)
-    draw.rounded_rectangle(((1920 - cw) / 2 - 38, 774, (1920 + cw) / 2 + 38, 838), radius=32, fill=(238, 107, 150, 240))
-    draw.text(((1920 - cw) / 2, 788), cta, font=font_b, fill=(35, 17, 43, 255))
+    draw.rounded_rectangle(((1920 - cw) / 2 - 38, 772, (1920 + cw) / 2 + 38, 836), radius=32, fill=(238, 107, 150, 240))
+    draw.text(((1920 - cw) / 2, 786), cta, font=font_b, fill=(35, 17, 43, 255))
 
     return cv2.cvtColor(np.array(canvas.convert('RGB')), cv2.COLOR_RGB2BGR)
 
 
-def build_video(paths: dict[str, Path]):
-    fps = 24
-    img_cordillera_1 = load_cover_1080p(paths['cordillera-escalera-bosque'], 1.20)
-    img_cordillera_2 = load_cover_1080p(paths['cordillera-escalera-valle'], 1.20)
-    img_ahuashiyacu = load_cover_1080p(paths['catarata-ahuashiyacu'], 1.20)
-    img_laguna = load_cover_1080p(paths['laguna-azul-sauce'], 1.20)
-    img_gallito = load_cover_1080p(paths['fauna-gallito-rocas'], 1.22)
-    img_mariposa = load_cover_1080p(paths['fauna-mariposa-cordillera'], 1.22)
-    img_heliconia = load_cover_1080p(paths['flora-heliconia-amazonica'], 1.22)
-    img_aerial_real = load_cover_1080p(ROOT / 'public' / 'drive' / '2d' / 'img-0751.webp', 1.18)
-    img_render_clean = load_cover_1080p(ROOT / 'public' / 'urbanization' / 'flamingo-render-clean.webp', 1.16)
+def build_synergistic_video(wav_path: Path):
+    fps = 30
+    img_c1 = load_cover_1080p(OUT_TARAPOTO / 'cordillera-escalera-bosque.webp', 1.22)
+    img_c2 = load_cover_1080p(OUT_TARAPOTO / 'cordillera-escalera-valle.webp', 1.22)
+    img_c3 = load_cover_1080p(OUT_TARAPOTO / 'tarapoto-ruta-cordillera.webp', 1.22)
+    img_t1 = load_cover_1080p(OUT_TARAPOTO / 'catarata-ahuashiyacu.webp', 1.22)
+    img_t2 = load_cover_1080p(OUT_TARAPOTO / 'laguna-azul-sauce.webp', 1.22)
+    img_t3 = load_cover_1080p(OUT_TARAPOTO / 'fauna-gallito-rocas.webp', 1.22)
+    img_p1 = load_cover_1080p(ROOT / 'public' / 'drive' / '2d' / 'img-0751.webp', 1.18)
+    img_p2 = load_cover_1080p(ROOT / 'public' / 'urbanization' / 'flamingo-render-clean.webp', 1.16)
 
     vignette = make_cinematic_vignette()
 
-    def render_segment(img, n_frames, z0, z1, px, py):
-        seg = []
+    def render_seg(img, duration_s, z0, z1, px, py):
+        n_frames = int(round(duration_s * fps))
+        out = []
         for i in range(n_frames):
             t = i / max(1, n_frames - 1)
             f = sample_ken_burns(img, t, z0, z1, px, py)
-            seg.append(blend_overlay(f, vignette, 1.0))
-        return seg
+            out.append(blend_overlay(f, vignette, 1.0))
+        return out
 
-    print('[Video] Rendering Chapter 1: Cordillera Escalera...')
-    seg_c1a = render_segment(img_cordillera_1, int(3.4 * fps), 1.00, 1.09, (-0.35, 0.20), (-0.15, 0.15))
-    seg_c1b = render_segment(img_cordillera_2, int(3.4 * fps), 1.02, 1.11, (0.30, -0.25), (0.10, -0.15))
+    # Chapter 1 (0.0s -> ~14.5s): Cordillera Escalera
+    print('[Video 30fps] Rendering Chapter 1: 01. Cordillera Escalera...')
+    s1 = render_seg(img_c1, 5.2, 1.00, 1.10, (-0.35, 0.25), (-0.15, 0.15))
+    s2 = render_seg(img_c2, 5.2, 1.02, 1.11, (0.30, -0.25), (0.10, -0.15))
+    s3 = render_seg(img_c3, 4.8, 1.00, 1.09, (-0.25, 0.30), (0.20, -0.15))
 
-    print('[Video] Rendering Chapter 2: Turismo (Ahuashiyacu & Laguna Azul)...')
-    seg_c2a = render_segment(img_ahuashiyacu, int(3.4 * fps), 1.00, 1.10, (0.0, 0.0), (0.35, -0.30))
-    seg_c2b = render_segment(img_laguna, int(3.4 * fps), 1.01, 1.10, (-0.40, 0.35), (0.0, -0.15))
+    # Chapter 2 (~14.5s -> ~28.5s): Ruta Turística (Ahuashiyacu, Laguna Azul, Biodiversidad)
+    print('[Video 30fps] Rendering Chapter 2: 02. Ruta Turística...')
+    s4 = render_seg(img_t1, 5.2, 1.00, 1.11, (0.0, 0.0), (0.35, -0.30))
+    s5 = render_seg(img_t2, 5.2, 1.01, 1.10, (-0.40, 0.35), (0.0, -0.15))
+    s6 = render_seg(img_t3, 4.4, 1.00, 1.10, (0.25, -0.15), (-0.15, 0.10))
 
-    print('[Video] Rendering Chapter 3: Fauna y Flora...')
-    seg_c3a = render_segment(img_gallito, int(2.6 * fps), 1.00, 1.10, (-0.25, 0.25), (-0.15, 0.10))
-    seg_c3b = render_segment(img_mariposa, int(2.4 * fps), 1.02, 1.11, (0.25, -0.20), (0.10, -0.15))
-    seg_c3c = render_segment(img_heliconia, int(2.4 * fps), 1.00, 1.09, (-0.20, 0.25), (0.20, -0.20))
+    # Chapter 3 (~28.5s -> 52.0s): Plusvalía en Tarapoto (Real DJI Drone Flight + Obra Real + Render + End-Card)
+    print('[Video 30fps] Rendering Chapter 3: 03. Plusvalía en Tarapoto (DJI Drone + Proyecto)...')
+    drone_raw = load_drone_frames(int(round(11.5 * fps)))
+    s7 = [blend_overlay(df, vignette, 0.85) for df in drone_raw]
+    s8 = render_seg(img_p1, 4.8, 1.00, 1.09, (-0.25, 0.25), (0.15, -0.15))
+    s9 = render_seg(img_p2, 4.8, 1.00, 1.08, (0.0, 0.0), (0.25, -0.20))
 
-    print('[Video] Loading Chapter 4: Real DJI Drone Flight of Residencial Flamingo...')
-    drone_raw = load_drone_frames(int(7.2 * fps))
-    seg_c4 = [blend_overlay(df, vignette, 0.85) for df in drone_raw]
-
-    print('[Video] Rendering Chapter 5: Architectural Vision & Brand End-Card...')
-    seg_c5a = render_segment(img_aerial_real, int(2.6 * fps), 1.00, 1.08, (-0.20, 0.20), (0.15, -0.15))
-    seg_c5b = render_segment(img_render_clean, int(2.8 * fps), 1.00, 1.08, (0.0, 0.0), (0.25, -0.20))
-
-    brand_card_bgr = build_closing_brand_card(
-        sample_ken_burns(img_aerial_real, 0.5, 1.04, 1.04, (0, 0), (0, 0)),
+    brand_card = build_closing_brand_card(
+        sample_ken_burns(img_p1, 0.5, 1.04, 1.04, (0, 0), (0, 0)),
         ROOT / 'public' / 'brand' / 'logo-flamingo-light.png',
     )
-    seg_c5c = [brand_card_bgr for _ in range(int(2.8 * fps))]
+    s10 = [brand_card for _ in range(int(round(4.2 * fps)))]
 
-    all_segments = [
-        seg_c1a,
-        seg_c1b,
-        seg_c2a,
-        seg_c2b,
-        seg_c3a,
-        seg_c3b,
-        seg_c3c,
-        seg_c4,
-        seg_c5a,
-        seg_c5b,
-        seg_c5c,
-    ]
+    segments = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10]
 
-    crossfade = 12
-    master_frames: list[np.ndarray] = list(all_segments[0])
-    for seg in all_segments[1:]:
+    # Smooth 15-frame (0.5s) crossfades between segments
+    crossfade = 15
+    master_frames: list[np.ndarray] = list(segments[0])
+    for seg in segments[1:]:
         overlap = min(crossfade, len(master_frames), len(seg))
         for k in range(overlap):
             alpha = (k + 1) / (overlap + 1)
@@ -356,8 +437,8 @@ def build_video(paths: dict[str, Path]):
         master_frames.extend(seg[overlap:])
 
     total_frames = len(master_frames)
-    duration_sec = total_frames / fps
-    print(f'[Video] Assembled {total_frames} frames ({duration_sec:.1f}s at {fps}fps). Encoding MP4 & WebM...')
+    duration_s = total_frames / fps
+    print(f'[Video 30fps] Assembled {total_frames} frames ({duration_s:.1f}s at {fps}fps). Muxing with audio...')
 
     poster_path = OUT_VIDEOS / 'tarapoto-flamingo-poster.webp'
     poster_rgb = cv2.cvtColor(master_frames[int(fps * 1.5)], cv2.COLOR_BGR2RGB)
@@ -369,18 +450,39 @@ def build_video(paths: dict[str, Path]):
     cmd_mp4 = [
         str(FFMPEG_BIN),
         '-y',
-        '-f', 'rawvideo',
-        '-vcodec', 'rawvideo',
-        '-s', '1920x1080',
-        '-pix_fmt', 'bgr24',
-        '-r', str(fps),
-        '-i', '-',
-        '-an',
-        '-vcodec', 'libx264',
-        '-preset', 'medium',
-        '-crf', '22',
-        '-pix_fmt', 'yuv420p',
-        '-movflags', '+faststart',
+        '-f',
+        'rawvideo',
+        '-vcodec',
+        'rawvideo',
+        '-s',
+        '1920x1080',
+        '-pix_fmt',
+        'bgr24',
+        '-r',
+        str(fps),
+        '-i',
+        '-',
+        '-i',
+        str(wav_path),
+        '-map',
+        '0:v:0',
+        '-map',
+        '1:a:0',
+        '-c:v',
+        'libx264',
+        '-preset',
+        'medium',
+        '-crf',
+        '22',
+        '-pix_fmt',
+        'yuv420p',
+        '-c:a',
+        'aac',
+        '-b:a',
+        '192k',
+        '-shortest',
+        '-movflags',
+        '+faststart',
         str(mp4_path),
     ]
     proc = subprocess.Popen(cmd_mp4, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -391,19 +493,27 @@ def build_video(paths: dict[str, Path]):
     stderr_out = proc.stderr.read().decode('utf-8', errors='ignore') if proc.stderr else ''
     ret = proc.wait()
     if ret != 0:
-        raise RuntimeError(f'FFmpeg MP4 encoding failed ({ret}): {stderr_out[-500:]}')
+        raise RuntimeError(f'FFmpeg MP4 muxing failed ({ret}): {stderr_out[-500:]}')
 
     print(f'[Video] Saved {mp4_path} ({mp4_path.stat().st_size / (1024*1024):.2f} MB)')
 
     cmd_webm = [
         str(FFMPEG_BIN),
         '-y',
-        '-i', str(mp4_path),
-        '-c:v', 'libvpx-vp9',
-        '-b:v', '0',
-        '-crf', '33',
-        '-row-mt', '1',
-        '-an',
+        '-i',
+        str(mp4_path),
+        '-c:v',
+        'libvpx-vp9',
+        '-b:v',
+        '0',
+        '-crf',
+        '33',
+        '-row-mt',
+        '1',
+        '-c:a',
+        'libopus',
+        '-b:a',
+        '160k',
         str(webm_path),
     ]
     subprocess.run(cmd_webm, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -411,5 +521,5 @@ def build_video(paths: dict[str, Path]):
 
 
 if __name__ == '__main__':
-    asset_paths = download_and_optimize_assets()
-    build_video(asset_paths)
+    wav_file = build_synergistic_audio(52.0)
+    build_synergistic_video(wav_file)
