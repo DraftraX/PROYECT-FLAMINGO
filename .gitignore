@@ -4,6 +4,7 @@ dist/
 
 # dependencies
 node_modules/
+__pycache__/
 
 # logs
 npm-debug.log*
@@ -15,7 +16,15 @@ pnpm-debug.log*
 .env
 .env.production
 
-# OS
+# OS & temporary caches
 .DS_Store
 Thumbs.db
 _ref/
+assets-input/video-tools/
+assets-input/tarapoto-commons/
+assets-input/drive-previews/
+assets-input/map-qa/
+assets-input/*.dll*
+assets-input/*.html
+assets-input/*.json
+assets-input/codec-test.mp4

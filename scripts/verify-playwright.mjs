@@ -37,9 +37,11 @@ async function waitForServer(url, timeoutMs = 15000) {
 async function runVerification() {
   fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
 
-  const server = spawn(process.execPath, ['./node_modules/astro/astro.js', 'preview', '--port', String(PORT)], {
-    stdio: 'pipe',
-  });
+  const server = spawn(
+    process.execPath,
+    ['./node_modules/astro/astro.js', 'preview', '--port', String(PORT)],
+    { stdio: 'pipe' }
+  );
 
   const browser = await launchBrowser();
 
@@ -67,72 +69,60 @@ async function runVerification() {
     await page.goto(LOCAL_URL, { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(800);
 
-    // 1. Test Menu Toggle (the exact trigger that previously caused NotFoundError: insertBefore)
+    // 1. Test Menu Toggle
     const menuBtn = page.locator('header button[aria-label*="menú"]');
     await menuBtn.click();
     await page.waitForTimeout(350);
-    const menuDrawerShot = path.join(ARTIFACT_DIR, 'verify_menu_drawer.png');
-    await page.screenshot({ path: menuDrawerShot });
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_menu_drawer.png') });
     await menuBtn.click();
     await page.waitForTimeout(350);
 
-    // 2. Scroll progressive steps inside the pinned section & toggle menu while pinned
-    const pinnedHeight = await page.evaluate(() => {
-      const sec = document.getElementById('preventa-scroll-stage');
-      return sec ? sec.offsetHeight - window.innerHeight : 3000;
-    });
-
-    await page.evaluate(
-      (y) => window.scrollTo({ top: y, behavior: 'instant' }),
-      Math.round(pinnedHeight * 0.38)
-    );
-    await page.waitForTimeout(500);
-    await menuBtn.click();
-    await page.waitForTimeout(250);
-    await menuBtn.click();
-    await page.waitForTimeout(250);
-
-    await page.evaluate(
-      (y) => window.scrollTo({ top: y, behavior: 'instant' }),
-      Math.round(pinnedHeight * 0.72)
-    );
-    await page.waitForTimeout(500);
-
-    await page.evaluate(
-      (y) => window.scrollTo({ top: y, behavior: 'instant' }),
-      Math.round(pinnedHeight * 0.98)
-    );
-    await page.waitForTimeout(500);
-
-    // 3. Test RealProjectShowcase video toggle & zone tabs
+    // 2. Scroll to "Nosotros" (Reconstructed HD Logo + Manifesto)
     await page.evaluate(() => {
-      document.getElementById('proyecto')?.scrollIntoView({ behavior: 'instant' });
+      document.getElementById('nosotros')?.scrollIntoView({ behavior: 'instant' });
     });
-    await page.waitForTimeout(400);
-    const toggleVideoBtn = page.locator('button', { hasText: /Ver Video de Transformación/i });
-    if (await toggleVideoBtn.count()) {
-      await toggleVideoBtn.click();
-      await page.waitForTimeout(400);
-      const backBtn = page.locator('button', { hasText: /Volver al Comparador/i });
-      await backBtn.click();
-      await page.waitForTimeout(300);
-    }
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_nosotros_logo.png') });
 
-    // 4. Test Lot Selector & 360 viewer
+    // 3. Scroll to Tarapoto & Cordillera Escalera Documentary Video Showcase
+    await page.evaluate(() => {
+      document.getElementById('tarapoto-video')?.scrollIntoView({ behavior: 'instant' });
+    });
+    await page.waitForTimeout(700);
+    const chBtn = page.locator('button', { hasText: /Dron Real Flamingo/i });
+    if (await chBtn.count()) {
+      await chBtn.click();
+      await page.waitForTimeout(500);
+    }
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_tarapoto_video.png') });
+
+    // 4. Scroll to Official 68-Lot Masterplan (Manzanas A-H)
     await page.evaluate(() => {
       document.getElementById('plano-lotes')?.scrollIntoView({ behavior: 'instant' });
     });
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(700);
+    const mzBBtn = page.locator('button', { hasText: /Mz B/i });
+    if (await mzBBtn.count()) {
+      await mzBBtn.click();
+      await page.waitForTimeout(350);
+    }
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_masterplan_oficial.png') });
 
-    // 5. Scroll to Contact & Footer and verify updated contact info
+    // 5. Scroll to "Una vida sin filtros en el paraíso de Tarapoto" (Selva Profunda cards + Fauna/Flora)
+    await page.evaluate(() => {
+      document.getElementById('tarapoto-maravillas')?.scrollIntoView({ behavior: 'instant' });
+    });
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_tarapoto_maravillas.png') });
+
+    // 6. Scroll to Contact & Footer
     await page.evaluate(() => {
       document.getElementById('contacto')?.scrollIntoView({ behavior: 'instant' });
     });
-    await page.waitForTimeout(500);
-    const contactScreenshot = path.join(ARTIFACT_DIR, 'verify_contact_footer.png');
-    await page.screenshot({ path: contactScreenshot, fullPage: false });
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, 'verify_contact_footer.png') });
 
-    const contactCheck = await page.evaluate(() => {
+    const pageCheck = await page.evaluate(() => {
       const text = document.body.innerText;
       const html = document.body.innerHTML;
       return {
@@ -142,9 +132,30 @@ async function runVerification() {
         hasInstagram: html.includes('https://www.instagram.com/inmobiliaria.flamingo/'),
         hasFacebook: html.includes('https://www.facebook.com/profile.php?id=61583317215238'),
         hasHandle: text.includes('@ResidencialFlamingo'),
+        hasCordillera: text.includes('Cordillera Escalera'),
+        hasVideoSource: html.includes('/videos/tarapoto-flamingo-reel.mp4'),
       };
     });
-    console.log('[Playwright] Verificación de datos de contacto:', contactCheck);
+    console.log('[Playwright] Verificación de contenido:', pageCheck);
+
+    // 7. Quick Mobile Viewport Verification (390x844)
+    const mobileCtx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+    });
+    const mPage = await mobileCtx.newPage();
+    mPage.on('console', (msg) => {
+      if (msg.type() === 'error') consoleErrors.push(`[Mobile] ${msg.text()}`);
+    });
+    mPage.on('pageerror', (err) => {
+      pageErrors.push(`[Mobile] ${err.message}`);
+    });
+    await mPage.goto(LOCAL_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await mPage.waitForTimeout(600);
+    const hasHorizontalOverflow = await mPage.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 2
+    );
+    console.log('[Playwright] Mobile horizontal overflow:', hasHorizontalOverflow);
 
     console.log(`[Playwright] Errores de consola: ${consoleErrors.length}`);
     console.log(`[Playwright] Excepciones de página: ${pageErrors.length}`);
@@ -152,13 +163,21 @@ async function runVerification() {
     if (
       consoleErrors.length > 0 ||
       pageErrors.length > 0 ||
-      !contactCheck.hasPhone ||
-      !contactCheck.hasWaLink ||
-      !contactCheck.hasEmail ||
-      !contactCheck.hasInstagram ||
-      !contactCheck.hasFacebook
+      hasHorizontalOverflow ||
+      !pageCheck.hasPhone ||
+      !pageCheck.hasWaLink ||
+      !pageCheck.hasEmail ||
+      !pageCheck.hasInstagram ||
+      !pageCheck.hasFacebook ||
+      !pageCheck.hasCordillera ||
+      !pageCheck.hasVideoSource
     ) {
-      console.error('Detalles de fallos:', { consoleErrors, pageErrors, contactCheck });
+      console.error('Detalles de fallos:', {
+        consoleErrors,
+        pageErrors,
+        hasHorizontalOverflow,
+        pageCheck,
+      });
       process.exitCode = 1;
     } else {
       console.log('[Playwright] ¡VERIFICACIÓN EXITOSA CON CERO ERRORES EN CONSOLA!');

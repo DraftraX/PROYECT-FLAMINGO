@@ -33,7 +33,7 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
   const PHASES = [
     {
       num: '01',
-      label: 'REPLANTEO Y LOTIZACIÓN',
+      label: 'REPLANTEO Y LOTIZACIÓN EN TARAPOTO',
       detail: 'Lotes independizados de 160 m² (8m × 20m) y 200 m² (10m × 20m)',
     },
     {
@@ -43,13 +43,13 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
     },
     {
       num: '03',
-      label: 'ENTORNO EDUCATIVO CONSOLIDADO',
-      detail: 'Ubicación estratégica a solo 30 metros del Colegio Virgen Dolorosa',
+      label: 'ENTORNO NATURAL Y EDUCATIVO',
+      detail: 'A 30 metros del Colegio Virgen Dolorosa con vista a la Cordillera Escalera',
     },
     {
       num: '04',
       label: 'ENTREGA INMEDIATA CON TÍTULO',
-      detail: 'Pórtico monumental construido y propiedad lista para construir',
+      detail: 'Pórtico monumental construido y propiedad lista para tu hogar',
     },
   ];
 
@@ -106,7 +106,6 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
     ctx.drawImage(img, dx, dy, drawW, drawH);
   };
 
-  // Preload 150 frames progressively without blocking initial paint
   useEffect(() => {
     let isCancelled = false;
     const priorityIndices = [1, 18, 36, 54, 75, 96, 115, 132, 150];
@@ -158,7 +157,6 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
     };
   }, []);
 
-  // GSAP ScrollTrigger Pinned Sequence (PeruBuilds Portal Scale + Clean Scrubbing + Closing Curtain)
   useEffect(() => {
     const section = sectionRef.current;
     const pinStage = pinStageRef.current;
@@ -168,14 +166,13 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
       ScrollTrigger.create({
         trigger: section,
         start: 'top top',
-        end: '+=340%',
+        end: '+=320%',
         pin: pinStage,
         scrub: 0.45,
         anticipatePin: 1,
         onUpdate: (self) => {
           const p = self.progress;
 
-          // Map 0%..84% scroll to frames 1..150 so the full construction finishes before the closing curtain
           const frameProgress = Math.min(1, p / 0.84);
           const targetFrame = Math.min(
             TOTAL_FRAMES,
@@ -190,7 +187,6 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
             });
           }
 
-          // 1. PeruBuilds Geometric Architectural Portal (scales 1 -> 12 and fades out between 0%..28%)
           if (portalOverlayRef.current) {
             const portalT = Math.min(1, Math.max(0, p / 0.28));
             const scaleVal = 1 + Math.pow(portalT, 2.1) * 11;
@@ -200,7 +196,6 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
             portalOverlayRef.current.style.visibility = opacityVal <= 0.01 ? 'hidden' : 'visible';
           }
 
-          // 2. Hero Left-Aligned Editorial Typography (fades & glides up between 0%..20%)
           if (heroCopyRef.current) {
             const copyT = Math.min(1, Math.max(0, p / 0.2));
             heroCopyRef.current.style.opacity = String((1 - copyT).toFixed(3));
@@ -208,7 +203,6 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
             heroCopyRef.current.style.visibility = copyT >= 0.99 ? 'hidden' : 'visible';
           }
 
-          // 3. Minimalist Bottom-Left Phase Indicator during unobstructed canvas scrubbing (22%..80%)
           if (midCaptionRef.current) {
             const showMid = p >= 0.2 && p <= 0.82;
             const midOpacity = showMid
@@ -227,7 +221,6 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
             setActivePhaseIdx(nextPhaseIdx);
           }
 
-          // 4. PeruBuilds Closing Statement Curtain (82%..100%)
           if (outroCurtainRef.current) {
             const outroT = Math.min(1, Math.max(0, (p - 0.8) / 0.16));
             outroCurtainRef.current.style.opacity = String(outroT.toFixed(3));
@@ -245,10 +238,10 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
 
   const navItems = [
     { label: 'Nosotros', id: 'nosotros' },
-    { label: 'Proyecto', id: 'proyecto' },
-    { label: 'Servicios', id: 'servicios' },
-    { label: 'Lotizador 360°', id: 'lotizador-360' },
-    { label: 'Aledaños', id: 'aledanos' },
+    { label: 'El Proyecto', id: 'proyecto' },
+    { label: 'Masterplan 360°', id: 'lotizador-360' },
+    { label: 'Tarapoto y Biodiversidad', id: 'tarapoto-maravillas' },
+    { label: 'Ubicación', id: 'ubicacion' },
     { label: 'Contacto', id: 'contacto' },
   ];
 
@@ -266,31 +259,31 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
   return (
     <div className="relative w-full bg-[#23112B] select-none">
       {/* =====================================================================
-          FIXED TOP ARCHITECTURAL NAVBAR + VERTICAL "HABLEMOS" TAB (PERUBUILDS)
+          STICKY MINIMALIST HEADER (SELVA PROFUNDA + FLAMINGO RESIDENCIAL)
           Kept outside <section ref={sectionRef}> so GSAP pin-spacer never
           conflicts with React sibling DOM nodes.
          ===================================================================== */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between pointer-events-none">
         <div className="flex items-center">
-          {/* Brand Block */}
+          {/* Reconstructed HD Logo Block */}
           <a
             href="#top"
-            className="pointer-events-auto flex items-center gap-3 bg-[#361D42]/90 backdrop-blur-md px-6 py-4 h-20 border-b border-white/10"
+            className="pointer-events-auto flex items-center gap-3 bg-[#23112B]/90 backdrop-blur-md px-6 py-3 h-20 border-b border-r border-white/10 transition-colors hover:bg-[#361D42]"
           >
             <img
               src={FLAMINGO_BRAND.logos.lightText}
               alt="Flamingo Residencial"
-              className="h-11 w-auto object-contain"
+              className="h-14 w-auto object-contain"
             />
           </a>
 
-          {/* Square Menu Toggle (PeruBuilds style) */}
+          {/* Menu Toggle */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen((v) => !v)}
             aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
             aria-expanded={mobileMenuOpen}
-            className="pointer-events-auto flex h-20 w-20 flex-col items-center justify-center gap-1.5 bg-[#190B20] text-white transition-colors hover:bg-[#EE6B96] hover:text-[#23112B] cursor-pointer"
+            className="pointer-events-auto flex h-20 w-20 flex-col items-center justify-center gap-1.5 bg-[#190B20]/95 text-white border-b border-white/10 transition-colors hover:bg-[#EE6B96] hover:text-[#23112B] cursor-pointer"
           >
             <span
               className={`h-0.5 w-6 bg-current transition-transform duration-200 ${
@@ -304,20 +297,20 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
             />
           </button>
 
-          {/* Clean Horizontal Text Links (visible inside Hero, just like PeruBuilds) */}
+          {/* Horizontal Editorial Links */}
           <nav
             style={{
               opacity: activePhaseIdx === 0 && !mobileMenuOpen ? 1 : 0,
               pointerEvents: activePhaseIdx === 0 && !mobileMenuOpen ? 'auto' : 'none',
             }}
-            className="hidden lg:flex items-center gap-9 pl-10 transition-opacity duration-300"
+            className="hidden xl:flex items-center gap-8 pl-8 transition-opacity duration-300"
           >
             {navItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => handleNavClick(item.id)}
-                className="font-dm text-sm font-medium tracking-wide text-white/90 hover:text-[#EE6B96] transition-colors cursor-pointer drop-shadow-[0_1px_6px_rgba(0,0,0,0.65)]"
+                className="font-dm text-sm font-medium tracking-wide text-white/95 hover:text-[#F48FB1] transition-colors cursor-pointer drop-shadow-[0_1px_6px_rgba(0,0,0,0.75)]"
               >
                 {item.label}
               </button>
@@ -325,37 +318,62 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
           </nav>
         </div>
 
-        {/* Right Fixed Vertical Tab ("Hablemos" — PeruBuilds signature) */}
+        {/* Top-Right Direct WhatsApp Pill & Vertical Tab */}
+        <div
+          style={{
+            opacity: activePhaseIdx === 0 && !mobileMenuOpen ? 1 : 0,
+            pointerEvents: activePhaseIdx === 0 && !mobileMenuOpen ? 'auto' : 'none',
+          }}
+          className="flex items-center gap-3 pr-4 sm:pr-8 transition-opacity duration-300"
+        >
+          <a
+            href={buildFlamingoWhatsAppUrl(0)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:inline-flex items-center gap-2.5 rounded-full bg-[#361D42]/90 backdrop-blur-md border border-[#F48FB1]/40 px-5 py-2.5 font-dm text-xs font-bold uppercase tracking-[0.16em] text-[#F5F1FA] hover:bg-[#EE6B96] hover:text-[#23112B] hover:border-[#EE6B96] transition-all shadow-lg"
+          >
+            <span className="h-2 w-2 rounded-full bg-[#EE6B96] animate-pulse" />
+            <span>{FLAMINGO_BRAND.contact.phoneDisplay}</span>
+          </a>
+        </div>
+
         <button
           type="button"
           onClick={() => handleNavClick('contacto')}
-          className="pointer-events-auto fixed right-0 top-0 z-50 flex h-48 w-14 items-center justify-center rounded-bl-xl bg-[#EE6B96] text-[#23112B] font-dm text-xs font-bold uppercase tracking-[0.22em] transition-colors hover:bg-[#F48FB1] shadow-lg cursor-pointer"
+          className="pointer-events-auto fixed right-0 top-24 z-50 flex h-44 w-12 items-center justify-center rounded-l-xl bg-[#EE6B96] text-[#23112B] font-dm text-[11px] font-bold uppercase tracking-[0.22em] transition-colors hover:bg-[#F48FB1] shadow-lg cursor-pointer"
         >
           <span className="-rotate-90 whitespace-nowrap">Hablemos</span>
         </button>
       </header>
 
-      {/* Persistent Mobile / Full Navigation Drawer (CSS-toggled to avoid DOM insertBefore mutations) */}
+      {/* Persistent Mobile / Full Navigation Drawer */}
       <div
         aria-hidden={!mobileMenuOpen}
-        className={`fixed inset-0 z-40 bg-[#23112B]/98 backdrop-blur-xl flex flex-col justify-center px-10 sm:px-20 transition-all duration-300 ${
+        className={`fixed inset-0 z-40 bg-[#23112B]/98 backdrop-blur-xl flex flex-col justify-center px-8 sm:px-20 transition-all duration-300 ${
           mobileMenuOpen
             ? 'opacity-100 visible pointer-events-auto'
             : 'opacity-0 invisible pointer-events-none'
         }`}
       >
-        <div className="max-w-4xl space-y-6">
-          <p className="font-dm text-xs uppercase tracking-[0.3em] text-[#EE6B96]">
-            Flamingo Residencial · Navegación
-          </p>
-          <div className="flex flex-col items-start gap-4">
+        <div className="max-w-5xl space-y-6">
+          <div className="flex items-center gap-4">
+            <img
+              src={FLAMINGO_BRAND.logos.lightText}
+              alt="Flamingo Residencial"
+              className="h-16 w-auto object-contain"
+            />
+            <p className="font-dm text-xs uppercase tracking-[0.3em] text-[#F48FB1]">
+              Tarapoto · San Martín · Preventa Oficial
+            </p>
+          </div>
+          <div className="flex flex-col items-start gap-3">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 tabIndex={mobileMenuOpen ? 0 : -1}
                 onClick={() => handleNavClick(item.id)}
-                className="font-geista text-4xl sm:text-6xl text-white hover:text-[#EE6B96] transition-colors text-left cursor-pointer"
+                className="font-geista text-3xl sm:text-5xl text-white hover:text-[#F48FB1] transition-colors text-left cursor-pointer"
               >
                 {item.label}
               </button>
@@ -366,13 +384,13 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
               href={buildFlamingoWhatsAppUrl(0)}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-[#EE6B96] transition-colors font-semibold"
+              className="hover:text-[#F48FB1] transition-colors font-semibold"
             >
               {FLAMINGO_BRAND.contact.phoneDisplay}
             </a>
             <a
               href={`mailto:${FLAMINGO_BRAND.contact.email}`}
-              className="hover:text-[#EE6B96] transition-colors"
+              className="hover:text-[#F48FB1] transition-colors"
             >
               {FLAMINGO_BRAND.contact.email}
             </a>
@@ -380,7 +398,7 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
               href={FLAMINGO_BRAND.contact.instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-[#EE6B96] transition-colors"
+              className="hover:text-[#F48FB1] transition-colors"
             >
               Instagram ({FLAMINGO_BRAND.contact.handle})
             </a>
@@ -388,7 +406,7 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
               href={FLAMINGO_BRAND.contact.facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-[#EE6B96] transition-colors"
+              className="hover:text-[#F48FB1] transition-colors"
             >
               Facebook Oficial
             </a>
@@ -409,96 +427,80 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
 
           {/* Subtle Dark Vignette for Typographic Legibility */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#23112B]/65 via-[#23112B]/25 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#23112B]/75 via-[#23112B]/35 to-transparent pointer-events-none" />
 
-          {/* ===================================================================
-              LAYER 1: PERUBUILDS GEOMETRIC FROSTED PORTAL (scales out on scroll)
-             =================================================================== */}
+          {/* Frosted Architectural Portal */}
           <div
             ref={portalOverlayRef}
             className="absolute inset-0 z-10 pointer-events-none origin-center will-change-transform"
           >
-            {/* Left Frosted Chevron Wing */}
             <div
-              className="absolute inset-0 bg-[#361D42]/45 backdrop-blur-[6px]"
+              className="absolute inset-0 bg-[#361D42]/45 backdrop-blur-[5px]"
               style={{
                 clipPath: 'polygon(0% 0%, 16% 0%, 56% 68%, 34% 100%, 0% 100%)',
               }}
             />
-            {/* Top-Right Frosted Triangle */}
             <div
-              className="absolute inset-0 bg-[#EAE3F2]/20 backdrop-blur-[5px]"
+              className="absolute inset-0 bg-[#EAE3F2]/15 backdrop-blur-[4px]"
               style={{
                 clipPath: 'polygon(52% 0%, 96% 0%, 75% 38%)',
               }}
             />
           </div>
 
-          {/* ===================================================================
-              LAYER 2: CLEAN LEFT-ALIGNED EDITORIAL HERO COPY (PeruBuilds style)
-             =================================================================== */}
+          {/* Hero Copy: Selva Profunda Editorial Elegance + Flamingo Brand Typography */}
           <div
             ref={heroCopyRef}
             className="relative z-20 h-full max-w-7xl mx-auto px-6 sm:px-14 lg:px-20 flex flex-col justify-center pointer-events-none will-change-transform"
           >
-            <div className="max-w-3xl space-y-8 pt-12">
-              <h1 className="font-dm font-bold text-4xl sm:text-6xl lg:text-[4.35rem] text-white leading-[1.05] tracking-tight drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">
-                <span>Lotes residenciales,</span>
-                <br />
-                <span>título propio y</span>
-                <br />
-                <span className="font-geista font-normal italic text-[#F48FB1]">
-                  entrega inmediata
-                </span>
+            <div className="max-w-3xl space-y-6 pt-14">
+              <span className="inline-flex items-center gap-2.5 rounded-full bg-[#23112B]/70 border border-[#F48FB1]/40 px-4 py-1.5 font-dm text-[11px] sm:text-xs font-bold uppercase tracking-[0.24em] text-[#F48FB1] backdrop-blur-md">
+                <span>Tarapoto · San Martín · Preventa Oficial</span>
+              </span>
+
+              <h1 className="font-geista font-normal text-4xl sm:text-6xl lg:text-[4.4rem] text-white leading-[1.06] tracking-tight drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)]">
+                <span>Un paraíso terrenal en el corazón verde de </span>
+                <span className="italic text-[#F48FB1]">Tarapoto</span>
               </h1>
 
-              <div className="flex flex-wrap items-center gap-x-10 gap-y-3 pt-2 font-dm text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-white/95">
+              <p className="font-dm text-base sm:text-lg text-[#F5F1FA]/90 max-w-2xl leading-relaxed drop-shadow-[0_1px_12px_rgba(0,0,0,0.45)]">
+                Lotes residenciales de <strong>160 m² y 200 m²</strong> con{' '}
+                <strong>título de propiedad</strong> y <strong>entrega inmediata</strong>, a solo 30
+                metros del Colegio Virgen Dolorosa y rodeados por la majestuosa Cordillera Escalera.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 pt-2 font-dm text-xs font-bold uppercase tracking-[0.2em] text-white/95">
                 <span>160 M² Y 200 M²</span>
+                <span>·</span>
                 <span>AGUA · DESAGÜE · LUZ</span>
-                <span>A 30M COLEGIO VIRGEN DOLOROSA</span>
+                <span>·</span>
+                <span>PROL. JR. CUZCO S/N</span>
               </div>
             </div>
 
-            {/* Geometric Chevron Accents (PeruBuilds signature) */}
-            <div className="hidden lg:block absolute right-28 top-1/3 text-white/90">
-              <svg width="110" height="72" viewBox="0 0 110 72" fill="none">
-                <path
-                  d="M8 58L30 36L52 58L74 36L96 58"
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  strokeLinecap="square"
-                />
-                <path
-                  d="M44 28L66 8L88 28"
-                  stroke="#EE6B96"
-                  strokeWidth="8"
-                  strokeLinecap="square"
-                />
-              </svg>
-            </div>
-
-            {/* Bottom-Left Scroll Down Chevron */}
-            <div className="absolute bottom-10 left-6 sm:left-14 lg:left-20">
-              <svg width="46" height="28" viewBox="0 0 46 28" fill="none">
+            {/* Bottom-Left Scroll Down Indicator */}
+            <div className="absolute bottom-10 left-6 sm:left-14 lg:left-20 flex items-center gap-3 text-white/90">
+              <svg width="36" height="22" viewBox="0 0 46 28" fill="none">
                 <path
                   d="M5 5L23 22L41 5"
                   stroke="#FFFFFF"
-                  strokeWidth="6"
+                  strokeWidth="5"
                   strokeLinecap="square"
                 />
               </svg>
+              <span className="font-dm text-[11px] uppercase tracking-[0.24em] text-[#EAE3F2]/85">
+                Desliza para recorrer el proyecto
+              </span>
             </div>
           </div>
 
-          {/* ===================================================================
-              LAYER 3: UNOBSTRUCTED CANVAS PHASE CAPTION (20%..80% scroll)
-             =================================================================== */}
+          {/* Unobstructed Canvas Phase Caption (20%..80% scroll) */}
           <div
             ref={midCaptionRef}
             style={{ opacity: 0 }}
             className="pointer-events-none absolute bottom-10 left-6 sm:left-14 lg:left-20 z-20 max-w-xl transition-opacity duration-150"
           >
-            <div className="border-l-2 border-[#EE6B96] pl-5 py-1 bg-[#23112B]/65 backdrop-blur-md pr-6">
+            <div className="border-l-2 border-[#EE6B96] pl-5 py-2 bg-[#23112B]/70 backdrop-blur-md pr-6 rounded-r-xl">
               <span className="font-dm text-[11px] font-bold uppercase tracking-[0.28em] text-[#F48FB1] block">
                 {`ETAPA ${activePhase.num} / 04 · ${activePhase.label}`}
               </span>
@@ -508,9 +510,7 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
             </div>
           </div>
 
-          {/* ===================================================================
-              LAYER 4: PERUBUILDS CLOSING STATEMENT CURTAIN (82%..100% scroll)
-             =================================================================== */}
+          {/* Closing Statement Curtain (82%..100% scroll) */}
           <div
             ref={outroCurtainRef}
             style={{ opacity: 0, pointerEvents: 'none' }}
@@ -519,14 +519,14 @@ export const CanvasScrollSequence: React.FC<CanvasScrollSequenceProps> = ({ onNa
             <img
               src={FLAMINGO_BRAND.logos.lightText}
               alt="Flamingo Residencial"
-              className="h-24 sm:h-28 w-auto object-contain mb-8"
+              className="h-32 sm:h-40 w-auto object-contain mb-8"
             />
-            <h2 className="font-dm font-bold text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight max-w-4xl">
+            <h2 className="font-geista font-normal text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight max-w-4xl">
               <span>{'Tu espacio, tu inversión, '}</span>
-              <span className="font-geista font-normal italic text-[#F48FB1]">tu futuro</span>
+              <span className="italic text-[#F48FB1]">tu legado en la Amazonía</span>
             </h2>
-            <p className="mt-4 font-dm text-xs sm:text-sm uppercase tracking-[0.26em] text-[#EAE3F2]/75">
-              Preventa Exclusiva · Lotes de 160 m² y 200 m² con Título de Propiedad
+            <p className="mt-4 font-dm text-xs sm:text-sm uppercase tracking-[0.26em] text-[#EAE3F2]/80">
+              Preventa Exclusiva en Tarapoto · Lotes de 160 m² y 200 m² con Título de Propiedad
             </p>
           </div>
         </div>
