@@ -30,3 +30,7 @@ assets-input/*.dll*
 assets-input/*.html
 assets-input/*.json
 assets-input/codec-test.mp4
+
+# frames intermedios de render de Blender
+blender/render/
+*.blend1
