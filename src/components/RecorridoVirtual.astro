@@ -1,0 +1,285 @@
+---
+// Recorrido virtual 360° de los 4 prototipos (panorámicas equirectangulares renderizadas en Blender).
+const prototipos = [
+  { id: 1, w: 8 },
+  { id: 2, w: 8 },
+  { id: 3, w: 10 },
+  { id: 4, w: 10 },
+];
+const ambientes = [
+  { id: 'sala', label: 'Sala' },
+  { id: 'cocina', label: 'Cocina' },
+  { id: 'dormitorio', label: 'Dormitorio principal' },
+  { id: 'rooftop', label: 'Rooftop' },
+];
+---
+
+<div class="rv" data-rv data-protos={JSON.stringify(prototipos)}>
+  <div class="rv__bar">
+    <div class="rv__group" role="tablist" aria-label="Prototipo">
+      {prototipos.map((p, i) => (
+        <button type="button" role="tab" class="rv__chip" data-proto={p.id} aria-selected={i === 0 ? 'true' : 'false'}>
+          Prototipo 0{p.id}
+        </button>
+      ))}
+    </div>
+    <div class="rv__group" aria-label="Ambiente">
+      {ambientes.map((a, i) => (
+        <button type="button" class="rv__room" data-room={a.id} aria-pressed={i === 0 ? 'true' : 'false'}>
+          {a.label}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <div class="rv__stage" data-stage tabindex="0" aria-label="Vista 360°. Arrastra o usa las flechas para mirar alrededor.">
+    <img class="rv__poster" data-poster src="/recorridos/prototipo-1-sala.jpg" alt="" loading="lazy" />
+    <div class="rv__hotspots" data-hotspots></div>
+    <div class="rv__loading" data-loading hidden>Cargando ambiente…</div>
+    <p class="rv__hint" data-hint>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 12h10M7 12l3-3M7 12l3 3M17 12l-3-3M17 12l-3 3"></path></svg>
+      Arrastra para mirar alrededor
+    </p>
+    <button type="button" class="rv__full" data-full aria-label="Pantalla completa">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  type Three = typeof import('three');
+  type Room = 'sala' | 'cocina' | 'dormitorio' | 'rooftop';
+  type Hotspot = { to: Room; yaw: number; pitch: number; label: string };
+
+  // Posiciones de cámara (m) en planta: x a lo ancho del lote, y hacia el fondo.
+  function hotspotsFor(room: Room, w: number): Hotspot[] {
+    const sala = { x: 0.62 * w, y: 12.4 };
+    const cocina = { x: 0.5 * w, y: 8.25 };
+    const escalera = { x: 0.65, y: 12.0 };
+    const yaw = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+      (Math.atan2(b.x - a.x, b.y - a.y) * 180) / Math.PI;
+    switch (room) {
+      case 'sala':
+        return [
+          { to: 'cocina', yaw: yaw(sala, cocina), pitch: -12, label: 'Cocina' },
+          { to: 'dormitorio', yaw: yaw(sala, escalera), pitch: 8, label: 'Subir al dormitorio' },
+        ];
+      case 'cocina':
+        return [
+          { to: 'sala', yaw: yaw(cocina, sala), pitch: -10, label: 'Sala' },
+          { to: 'dormitorio', yaw: yaw(cocina, escalera), pitch: 6, label: 'Subir al dormitorio' },
+        ];
+      case 'dormitorio':
+        return [
+          { to: 'sala', yaw: yaw({ x: 0.5 * w, y: 4.4 }, { x: 0.9, y: 7.8 }), pitch: -18, label: 'Bajar a la sala' },
+          { to: 'rooftop', yaw: 0, pitch: 62, label: 'Subir al rooftop' },
+        ];
+      case 'rooftop':
+        return [{ to: 'dormitorio', yaw: 180, pitch: -55, label: 'Bajar al dormitorio' }];
+    }
+  }
+
+  function init(root: HTMLElement, THREE: Three) {
+    const protos: { id: number; w: number }[] = JSON.parse(root.dataset.protos || '[]');
+    const stage = root.querySelector<HTMLElement>('[data-stage]')!;
+    const hotspotsEl = root.querySelector<HTMLElement>('[data-hotspots]')!;
+    const loadingEl = root.querySelector<HTMLElement>('[data-loading]')!;
+    const hintEl = root.querySelector<HTMLElement>('[data-hint]')!;
+    const poster = root.querySelector<HTMLImageElement>('[data-poster]')!;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-proto]')];
+    const rooms = [...root.querySelectorAll<HTMLButtonElement>('[data-room]')];
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.domElement.className = 'rv__canvas';
+    stage.prepend(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1100);
+    const geometry = new THREE.SphereGeometry(500, 64, 32);
+    geometry.scale(-1, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    scene.add(new THREE.Mesh(geometry, material));
+
+    const loader = new THREE.TextureLoader();
+    const cache = new Map<string, import('three').Texture>();
+    let proto = protos[0];
+    let room: Room = 'sala';
+    let lon = 180, lat = 0, autoRotate = true;
+    let current: Hotspot[] = [];
+    let hotspotButtons: HTMLButtonElement[] = [];
+
+    const url = (p: number, r: Room) => `/recorridos/prototipo-${p}-${r}.jpg`;
+
+    function load(p: number, r: Room, keepView = false) {
+      const key = url(p, r);
+      loadingEl.hidden = false;
+      const apply = (tex: import('three').Texture) => {
+        material.map = tex;
+        material.needsUpdate = true;
+        loadingEl.hidden = true;
+        poster.hidden = true;
+        if (!keepView) { lon = 180; lat = 0; }
+        buildHotspots();
+      };
+      const cached = cache.get(key);
+      if (cached) return apply(cached);
+      loader.load(key, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        cache.set(key, tex);
+        apply(tex);
+      });
+    }
+
+    function buildHotspots() {
+      hotspotsEl.replaceChildren();
+      current = hotspotsFor(room, proto.w);
+      hotspotButtons = current.map((h) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'rv__spot';
+        b.innerHTML = `<span class="rv__spot-dot" aria-hidden="true"></span><span class="rv__spot-label">${h.label}</span>`;
+        b.addEventListener('click', () => go(h.to));
+        hotspotsEl.append(b);
+        return b;
+      });
+    }
+
+    function setActive() {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(Number(t.dataset.proto) === proto.id)));
+      rooms.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.room === room)));
+    }
+
+    function go(r: Room) {
+      room = r;
+      setActive();
+      load(proto.id, room);
+    }
+
+    tabs.forEach((t) => t.addEventListener('click', () => {
+      proto = protos.find((p) => p.id === Number(t.dataset.proto)) || protos[0];
+      setActive();
+      load(proto.id, room);
+    }));
+    rooms.forEach((b) => b.addEventListener('click', () => go(b.dataset.room as Room)));
+
+    // Interacción: arrastrar, rueda (zoom), teclado.
+    let dragging = false, sx = 0, sy = 0, slon = 0, slat = 0;
+    const stop = () => { autoRotate = false; hintEl.hidden = true; };
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      dragging = true; sx = e.clientX; sy = e.clientY; slon = lon; slat = lat; stop();
+      renderer.domElement.setPointerCapture(e.pointerId);
+    });
+    renderer.domElement.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const k = camera.fov / stage.clientHeight;
+      lon = slon - (e.clientX - sx) * k;
+      lat = slat + (e.clientY - sy) * k;
+    });
+    renderer.domElement.addEventListener('pointerup', () => { dragging = false; });
+    renderer.domElement.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camera.fov = THREE.MathUtils.clamp(camera.fov + e.deltaY * 0.03, 35, 90);
+      camera.updateProjectionMatrix();
+    }, { passive: false });
+    stage.addEventListener('keydown', (e) => {
+      const step = 5;
+      if (e.key === 'ArrowLeft') lon -= step;
+      else if (e.key === 'ArrowRight') lon += step;
+      else if (e.key === 'ArrowUp') lat += step;
+      else if (e.key === 'ArrowDown') lat -= step;
+      else return;
+      e.preventDefault(); stop();
+    });
+
+    const fullBtn = root.querySelector<HTMLButtonElement>('[data-full]')!;
+    fullBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else stage.requestFullscreen?.();
+    });
+
+    function resize() {
+      const w = stage.clientWidth, h = stage.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    new ResizeObserver(resize).observe(stage);
+    resize();
+
+    const v = new THREE.Vector3();
+    const dir = (yaw: number, pitch: number) => {
+      const phi = THREE.MathUtils.degToRad(90 - pitch);
+      const theta = THREE.MathUtils.degToRad(180 + yaw);
+      return v.set(Math.sin(phi) * Math.cos(theta), Math.cos(phi), Math.sin(phi) * Math.sin(theta));
+    };
+
+    let visible = true;
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+
+    renderer.setAnimationLoop(() => {
+      if (!visible) return;
+      if (autoRotate) lon += 0.04;
+      lat = THREE.MathUtils.clamp(lat, -85, 85);
+      const phi = THREE.MathUtils.degToRad(90 - lat);
+      const theta = THREE.MathUtils.degToRad(lon);
+      camera.lookAt(Math.sin(phi) * Math.cos(theta), Math.cos(phi), Math.sin(phi) * Math.sin(theta));
+      renderer.render(scene, camera);
+      const w = stage.clientWidth, h = stage.clientHeight;
+      current.forEach((hs, i) => {
+        const p = dir(hs.yaw, hs.pitch).clone().project(camera);
+        const b = hotspotButtons[i];
+        if (!b) return;
+        const front = p.z < 1;
+        b.style.display = front ? '' : 'none';
+        b.style.transform = `translate(${((p.x + 1) / 2) * w}px, ${((1 - p.y) / 2) * h}px) translate(-50%, -50%)`;
+      });
+    });
+
+    load(proto.id, room);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-rv]').forEach((root) => {
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { io.disconnect(); import('three').then((THREE) => init(root, THREE)); }
+    }, { rootMargin: '400px 0px' });
+    io.observe(root);
+  });
+</script>
+
+<style>
+  .rv { --plum: #462939; --beige: #f2ebe1; --olive: #535906; }
+  .rv__bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+  .rv__group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rv__chip, .rv__room {
+    min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(70, 41, 57, 0.3);
+    background: transparent; color: var(--plum); font: inherit; font-size: 13px; letter-spacing: 0.12em;
+    text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  .rv__chip[aria-selected='true'], .rv__room[aria-pressed='true'] { background: var(--plum); color: var(--beige); border-color: var(--plum); }
+  .rv__chip:hover, .rv__room:hover { border-color: var(--plum); }
+  .rv__stage {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 360px; border-radius: 4px; overflow: hidden;
+    background: #2e1b26; cursor: grab; touch-action: none; outline: none;
+  }
+  .rv__stage:focus-visible { box-shadow: 0 0 0 3px var(--olive); }
+  .rv__stage:active { cursor: grabbing; }
+  .rv__stage:fullscreen { border-radius: 0; aspect-ratio: auto; }
+  :global(.rv__canvas) { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .rv__poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .rv__hotspots { position: absolute; inset: 0; pointer-events: none; }
+  :global(.rv__spot) {
+    position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; align-items: center; gap: 10px;
+    min-height: 44px; padding: 0 16px 0 10px; border: 0; border-radius: 999px; cursor: pointer;
+    background: rgba(70, 41, 57, 0.82); color: #f2ebe1; font: inherit; font-size: 13px; letter-spacing: 0.08em;
+    backdrop-filter: blur(6px);
+  }
+  :global(.rv__spot:hover) { background: #462939; }
+  :global(.rv__spot-dot) { width: 14px; height: 14px; border-radius: 50%; background: #f2ebe1; box-shadow: 0 0 0 4px rgba(242, 235, 225, 0.35); }
+  .rv__loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 10px 18px; border-radius: 999px; background: rgba(46, 27, 38, 0.8); color: var(--beige); font-size: 13px; letter-spacing: 0.1em; }
+  .rv__hint { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); margin: 0; display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: rgba(46, 27, 38, 0.72); color: var(--beige); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; pointer-events: none; }
+  .rv__full { position: absolute; right: 14px; top: 14px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(46, 27, 38, 0.72); color: var(--beige); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  @media (max-width: 640px) { .rv__stage { aspect-ratio: 4 / 5; } }
+</style>

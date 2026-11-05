@@ -1,4 +1,5 @@
 ---
+import RecorridoVirtual from './RecorridoVirtual.astro';
 // Landing editorial de Residencial Flamingo, basada en el Brandbook 2026.
 // Paleta: ciruela #462939 · beige #F2EBE1 · oliva #535906 · negro #3D3C3D.
 // Tipografía: Geista Mond (títulos) + DM Sans (textos).
@@ -37,6 +38,7 @@ const nav = [
   { href: '#nosotros', label: 'Nosotros' },
   { href: '#proyecto', label: 'Proyecto' },
   { href: '#modelos', label: 'Modelos' },
+  { href: '#recorrido', label: 'Recorrido 360°' },
   { href: '#entorno', label: 'Entorno' },
 ];
 ---
@@ -180,6 +182,34 @@ const nav = [
       </div>
     </section>
 
+    <section id="ingreso" class="fl-section fl-section--flush-top">
+      <div class="fl-wrap">
+        <div class="fl-head-row">
+          <div>
+            <p class="fl-eyebrow">Pórtico y plaza central</p>
+            <h2 class="fl-h2">Un ingreso con identidad, una plaza para encontrarse.</h2>
+          </div>
+          <p class="fl-body fl-body--sm fl-head-row__aside">
+            Pórtico de piedra con control de acceso sobre Prolongación Cuzco y una plaza de 1 134 m² en el corazón del residencial.
+          </p>
+        </div>
+        <figure class="fl-wide fl-reveal">
+          <img src="/residencial/portico.jpg" alt="Pórtico de ingreso de Residencial Flamingo con torre de piedra y portones de madera" loading="lazy" class="fl-photo fl-photo--wide" />
+          <figcaption>Pórtico principal · torre de piedra, marquesina volada y portones de madera</figcaption>
+        </figure>
+        <div class="fl-gallery">
+          <figure class="fl-reveal">
+            <img src="/residencial/plaza-aerea.jpg" alt="Vista aérea de la plaza central con pérgola, pileta y palmeras" loading="lazy" class="fl-photo" />
+            <figcaption>Plaza central · pérgola, pileta y juegos</figcaption>
+          </figure>
+          <figure class="fl-reveal">
+            <img src="/residencial/plaza-central.jpg" alt="Caminos y maceteros con palmeras en la plaza central" loading="lazy" class="fl-photo" />
+            <figcaption>Caminos, maceteros iluminados y áreas verdes</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
     <section id="modelos" class="fl-section fl-section--sand">
       <div class="fl-wrap">
         <div class="fl-head-row">
@@ -211,6 +241,12 @@ const nav = [
         <div class="fl-models__foot">
           <p class="fl-body fl-body--sm">Áreas referenciales. Solicita planos y precios de cada prototipo.</p>
           <a href={wa(central.raw)} class="fl-btn fl-btn--plum" target="_blank" rel="noopener">Solicitar planos</a>
+        </div>
+        <div id="recorrido" class="fl-tour">
+          <p class="fl-eyebrow">Recorrido virtual 360°</p>
+          <h2 class="fl-h2">Camina por dentro de cada prototipo.</h2>
+          <p class="fl-body fl-body--sm fl-tour__lead">Elige un prototipo y un ambiente, o usa los puntos dentro de la vista para pasar de la sala a la cocina, al dormitorio y al rooftop.</p>
+          <div class="fl-tour__viewer"><RecorridoVirtual /></div>
         </div>
       </div>
     </section>
@@ -378,6 +414,12 @@ const nav = [
   .fl-model__specs dd { margin: 0; text-align: right; color: var(--ink); }
   .fl-models__foot { margin-top: 40px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; }
   .fl-models__foot .fl-body { margin: 0; }
+  .fl-wide { margin: 56px 0 0; }
+  .fl-wide figcaption, .fl-gallery figcaption { margin-top: 16px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--plum); }
+  .fl-photo--wide { aspect-ratio: 16 / 9; }
+  .fl-tour { margin-top: clamp(80px, 9vw, 128px); }
+  .fl-tour__lead { max-width: 560px; }
+  .fl-tour__viewer { margin-top: 36px; }
   .fl-btn--plum { background: var(--plum); color: var(--beige); font-weight: 500; }
   .fl-btn--plum:hover { background: #5a3649; }
 
