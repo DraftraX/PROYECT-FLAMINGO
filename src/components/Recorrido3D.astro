@@ -1,5 +1,6 @@
 ---
 // Recorrido 3D de todo Residencial Flamingo, exportado desde Blender (public/proyecto3d).
+import RecorridoVirtual from './RecorridoVirtual.astro';
 const paradas = [
   { id: 'aerea', label: 'Vista aérea' },
   { id: 'portico', label: 'Pórtico' },
@@ -38,7 +39,26 @@ const paradas = [
     </div>
 
     <p class="r3d__hint" data-hint>Arrastra para girar · rueda para acercar</p>
+
+    <button type="button" class="r3d__enter" data-enter hidden>
+      <img src="/brand/iconos/portico.svg" alt="" width="34" height="34" />
+      <span><b data-enter-label>Entrar a la casa</b><small data-enter-sub>Tecla E</small></span>
+    </button>
   </div>
+
+  <dialog class="r3d__dialog" data-dialog aria-labelledby="r3d-dialog-t">
+    <div class="r3d__dialog-head">
+      <div>
+        <p class="fl-eyebrow">Recorrido interior</p>
+        <h2 id="r3d-dialog-t" class="fl-h3" data-dialog-title>Prototipo</h2>
+      </div>
+      <button type="button" class="r3d__close" data-close aria-label="Salir de la casa y volver al recorrido">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        <span>Volver a la calle</span>
+      </button>
+    </div>
+    <RecorridoVirtual />
+  </dialog>
 </div>
 
 <script>
@@ -49,6 +69,8 @@ const paradas = [
     const THREE = await import('three');
     const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
     const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
+    const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
+    const { crearTexturas, texturizar, triplanar } = await import('../scripts/texturas');
 
     const stage = root.querySelector<HTMLElement>('[data-stage]')!;
     const loadingEl = root.querySelector<HTMLElement>('[data-loading]')!;
@@ -83,9 +105,12 @@ const paradas = [
     );
     scene.add(sky);
 
-    // Luz cálida de atardecer
-    scene.add(new THREE.HemisphereLight('#dfe3ee', '#4f5b2c', 1.25));
-    const sun = new THREE.DirectionalLight('#ffd7b0', 2.6);
+    // Luz cálida de atardecer + entorno para reflejos en vidrio y metal
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environmentIntensity = 0.45;
+    scene.add(new THREE.HemisphereLight('#e4e6ef', '#4f5b2c', 0.85));
+    const sun = new THREE.DirectionalLight('#ffd7b0', 2.8);
     sun.position.set(-140, 120, 110);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -94,7 +119,11 @@ const paradas = [
     scene.add(sun);
 
     // Suelo amplio alrededor del sitio
-    const ground = new THREE.Mesh(new THREE.CircleGeometry(1400, 48), new THREE.MeshLambertMaterial({ color: '#4d6328' }));
+    const tx = crearTexturas(THREE);
+    const groundMat = new THREE.MeshStandardMaterial({ roughness: 1 });
+    triplanar(groundMat, tx.pasto, 0.05);
+    groundMat.color.set('#c9d6b4');
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(1400, 48), groundMat);
     ground.rotation.x = -Math.PI / 2; ground.position.y = -0.09; ground.receiveShadow = true;
     scene.add(ground);
 
@@ -119,15 +148,83 @@ const paradas = [
     });
     const [sitio, ...protos] = await Promise.all(['/proyecto3d/sitio.glb', 1, 2, 3, 4].map((u) => load(typeof u === 'number' ? `/proyecto3d/prototipo-${u}.glb` : u)));
     prep(sitio.scene, true); scene.add(sitio.scene);
-    protos.forEach((g) => prep(g.scene, true));
-    for (const c of data.casas) {
+    const texturizados = texturizar(sitio.scene, tx);
+    protos.forEach((g) => { prep(g.scene, true); texturizar(g.scene, tx, texturizados); });
+
+    // Puerta peatonal de cada prototipo, en coordenadas locales de la casa (m).
+    // Mismo cálculo que el modelado en Blender: cochera a la derecha, ingreso a la izquierda.
+    const doorX = (w: number) => {
+      const gx0 = w - 0.2 - (w < 9 ? 3.2 : 5.4);
+      const split = 0.2 + (gx0 - 0.55 - 0.2) * 0.55;
+      return split + 0.75;
+    };
+    const anchoProto = [8, 8, 10, 10];
+    const markerMat = new THREE.MeshBasicMaterial({ color: '#d7dc8a', transparent: true, opacity: 0.85, depthWrite: false });
+    const markerGeo = new THREE.RingGeometry(0.42, 0.6, 40).rotateX(-Math.PI / 2);
+    type Puerta = { p: number; lote: number; pos: any; casa: any };
+    const puertas: Puerta[] = [];
+    const casas: any[] = [];
+    data.casas.forEach((c, i) => {
       const h = protos[c.p - 1].scene.clone();
       h.position.set(...c.pos);
       h.rotation.y = c.rot;
       h.scale.set(c.sx, 1, c.sz);
+      h.userData = { p: c.p, lote: i + 1 };
       scene.add(h);
-    }
+      casas.push(h);
+      const ring = new THREE.Mesh(markerGeo, markerMat);
+      ring.position.set(doorX(anchoProto[c.p - 1]), 0.14, 0.9);
+      h.add(ring);
+      h.updateMatrixWorld(true);
+      puertas.push({ p: c.p, lote: i + 1, pos: ring.getWorldPosition(new THREE.Vector3()), casa: h });
+    });
     loadingEl.hidden = true;
+
+    // ---- Entrar a la casa
+    const enterBtn = root.querySelector<HTMLButtonElement>('[data-enter]')!;
+    const enterLabel = root.querySelector<HTMLElement>('[data-enter-label]')!;
+    const dialog = root.querySelector<HTMLDialogElement>('[data-dialog]')!;
+    const dialogTitle = root.querySelector<HTMLElement>('[data-dialog-title]')!;
+    const rv = dialog.querySelector<HTMLElement>('[data-rv]')!;
+    let candidata: Puerta | null = null;
+    let fuente: 'cerca' | 'clic' = 'cerca';
+    let enCasa = false;
+    const ofrecer = (pt: Puerta | null, src: 'cerca' | 'clic' = 'cerca') => {
+      candidata = pt; fuente = src;
+      enterBtn.hidden = !pt;
+      if (pt) {
+        enterLabel.textContent = `Entrar al Prototipo 0${pt.p}`;
+        root.querySelector<HTMLElement>('[data-enter-sub]')!.textContent = `Lote ${String(pt.lote).padStart(2, '0')} · tecla E`;
+      }
+    };
+    const entrar = () => {
+      if (!candidata) return;
+      enCasa = true; keys.clear();
+      dialogTitle.textContent = `Prototipo 0${candidata.p} · Lote ${String(candidata.lote).padStart(2, '0')}`;
+      rv.dataset.start = String(candidata.p);
+      dialog.showModal();
+      rv.dispatchEvent(new CustomEvent('rv:go', { detail: candidata.p }));
+    };
+    enterBtn.addEventListener('click', entrar);
+    dialog.querySelector('[data-close]')!.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => { enCasa = false; stage.focus(); });
+    stage.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'e') entrar(); });
+
+    // Clic sobre una casa: la elige como destino (en cualquier modo)
+    const ray = new THREE.Raycaster(); const ndc = new THREE.Vector2();
+    let downX = 0, downY = 0;
+    renderer.domElement.addEventListener('pointerdown', (e) => { downX = e.clientX; downY = e.clientY; });
+    renderer.domElement.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return;
+      const r = renderer.domElement.getBoundingClientRect();
+      ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      const hit = ray.intersectObjects(casas, true)[0];
+      if (!hit) return;
+      let o: any = hit.object; while (o && !o.userData.p) o = o.parent;
+      const pt = puertas.find((d) => d.casa === o);
+      if (pt) ofrecer(pt, 'clic');
+    });
 
     // ---- Modos y recorrido
     let mode: 'orbit' | 'walk' = 'orbit';
@@ -210,7 +307,8 @@ const paradas = [
     const fwd = new THREE.Vector3(), side = new THREE.Vector3(), look = new THREE.Vector3();
     renderer.setAnimationLoop(() => {
       const dt = Math.min(clock.getDelta(), 0.05);
-      if (!visible) return;
+      if (!visible || enCasa) return;
+      markerMat.opacity = 0.55 + Math.sin(clock.elapsedTime * 3) * 0.3;
       if (tween) {
         tween.t = Math.min(1, tween.t + dt / 1.6);
         const k = tween.t < 0.5 ? 4 * tween.t ** 3 : 1 - (-2 * tween.t + 2) ** 3 / 2;
@@ -236,6 +334,15 @@ const paradas = [
         if (off.length() > 260) { off.setLength(260); camera.position.x = centro.x + off.x; camera.position.z = centro.z + off.z; }
         look.set(Math.sin(yaw + Math.PI) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw + Math.PI) * Math.cos(pitch)).add(camera.position);
         camera.lookAt(look);
+        // Puerta más cercana a menos de 5 m: ofrecer entrar
+        let best: Puerta | null = null, bd = 5;
+        for (const d of puertas) {
+          const dist = Math.hypot(d.pos.x - camera.position.x, d.pos.z - camera.position.z);
+          if (dist < bd) { bd = dist; best = d; }
+        }
+        const moving = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown'].some((k) => keys.has(k));
+        if (best && best !== candidata) ofrecer(best, 'cerca');
+        else if (!best && candidata && (fuente === 'cerca' || moving)) ofrecer(null);
       } else {
         controls.update();
       }
@@ -277,7 +384,23 @@ const paradas = [
   .r3d__pad [data-move='b'] { grid-column: 2; grid-row: 2; }
   .r3d__pad [data-move='r'] { grid-column: 3; grid-row: 2; }
   .r3d__hint { position: absolute; z-index: 3; left: 50%; top: 74px; transform: translateX(-50%); margin: 0; padding: 8px 16px; border-radius: 999px; background: rgba(46,27,38,.72); color: var(--beige); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; pointer-events: none; white-space: nowrap; }
+  .r3d__enter { position: absolute; z-index: 4; left: 50%; bottom: 84px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 8px 22px 8px 12px; border: 0; border-radius: 999px; background: var(--beige); color: var(--plum); font: inherit; cursor: pointer; box-shadow: 0 16px 40px -16px rgba(0,0,0,.5); animation: r3d-in .35s ease; }
+  .r3d__enter[hidden] { display: none; }
+  .r3d__enter img { width: 34px; height: 34px; }
+  .r3d__enter span { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
+  .r3d__enter b { font-family: var(--serif); font-weight: 400; font-size: 19px; }
+  .r3d__enter small { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--olive); }
+  .r3d__enter:hover { background: #fff; }
+  @keyframes r3d-in { from { opacity: 0; transform: translate(-50%, 10px); } }
+  .r3d__dialog { width: min(1180px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: clamp(18px, 3vw, 32px); border: 0; border-radius: 6px; background: var(--sand); color: var(--ink); box-sizing: border-box; overflow: auto; }
+  .r3d__dialog::backdrop { background: rgba(46, 27, 38, 0.82); backdrop-filter: blur(4px); }
+  .r3d__dialog-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+  .r3d__dialog-head .fl-h3 { margin-top: 10px; }
+  .r3d__close { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--plum); border-radius: 999px; background: transparent; color: var(--plum); font: inherit; font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  .r3d__close:hover { background: var(--plum); color: var(--beige); }
   @media (max-width: 640px) {
+    .r3d__enter { bottom: 200px; }
+    .r3d__close span { display: none; }
     .r3d__stage { height: 78vh; }
     .r3d__stops { max-width: calc(100% - 32px); bottom: 136px; }
     .r3d__hint { display: none; }

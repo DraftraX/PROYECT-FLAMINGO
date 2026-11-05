@@ -104,7 +104,7 @@ const ambientes = [
 
     const loader = new THREE.TextureLoader();
     const cache = new Map<string, import('three').Texture>();
-    let proto = protos[0];
+    let proto = protos.find((p) => p.id === Number(root.dataset.start)) || protos[0];
     let room: Room = 'sala';
     let lon = 180, lat = 0, autoRotate = true;
     let current: Hotspot[] = [];
@@ -164,6 +164,13 @@ const ambientes = [
       load(proto.id, room);
     }));
     rooms.forEach((b) => b.addEventListener('click', () => go(b.dataset.room as Room)));
+    // Apertura externa (p. ej. desde la puerta de una casa en el recorrido 3D).
+    root.addEventListener('rv:go', ((e: CustomEvent<number>) => {
+      proto = protos.find((p) => p.id === e.detail) || protos[0];
+      room = 'sala';
+      setActive();
+      load(proto.id, room);
+    }) as EventListener);
 
     // Interacción: arrastrar, rueda (zoom), teclado.
     let dragging = false, sx = 0, sy = 0, slon = 0, slat = 0;
@@ -238,6 +245,7 @@ const ambientes = [
       });
     });
 
+    setActive();
     load(proto.id, room);
   }
 
