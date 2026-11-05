@@ -1,0 +1,285 @@
+---
+// Recorrido 3D de todo Residencial Flamingo, exportado desde Blender (public/proyecto3d).
+const paradas = [
+  { id: 'aerea', label: 'Vista aérea' },
+  { id: 'portico', label: 'Pórtico' },
+  { id: 'ingreso', label: 'Ingreso' },
+  { id: 'plaza', label: 'Plaza central' },
+  { id: 'pergola', label: 'Pérgola' },
+];
+---
+
+<div class="r3d" data-r3d>
+  <div class="r3d__stage" data-stage tabindex="0" aria-label="Recorrido 3D del residencial. Arrastra para mirar; en modo caminar usa W A S D o las flechas para moverte.">
+    <div class="r3d__loading" data-loading>
+      <img src="/brand/brandbook/isotipo-light.svg" alt="" />
+      <span>Cargando el residencial… <b data-pct>0%</b></span>
+    </div>
+
+    <div class="r3d__top">
+      <div class="r3d__modes" role="group" aria-label="Modo de recorrido">
+        <button type="button" data-mode="orbit" aria-pressed="true">Vista aérea</button>
+        <button type="button" data-mode="walk" aria-pressed="false">Caminar</button>
+      </div>
+      <button type="button" class="r3d__icon" data-full aria-label="Pantalla completa">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
+      </button>
+    </div>
+
+    <div class="r3d__stops" role="group" aria-label="Ir a">
+      {paradas.map((p) => <button type="button" data-stop={p.id}>{p.label}</button>)}
+    </div>
+
+    <div class="r3d__pad" data-pad hidden>
+      <button type="button" data-move="f" aria-label="Avanzar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 5l-6 7h12z"></path></svg></button>
+      <button type="button" data-move="l" aria-label="Izquierda"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12l7-6v12z"></path></svg></button>
+      <button type="button" data-move="b" aria-label="Retroceder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 19l6-7H6z"></path></svg></button>
+      <button type="button" data-move="r" aria-label="Derecha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M19 12l-7 6V6z"></path></svg></button>
+    </div>
+
+    <p class="r3d__hint" data-hint>Arrastra para girar · rueda para acercar</p>
+  </div>
+</div>
+
+<script>
+  type V3 = [number, number, number];
+  type Escena = { casas: { p: number; pos: V3; rot: number; sx: number; sz: number }[]; poi: Record<string, { pos: V3; look: V3 }>; centro: V3 };
+
+  async function init(root: HTMLElement) {
+    const THREE = await import('three');
+    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+    const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
+
+    const stage = root.querySelector<HTMLElement>('[data-stage]')!;
+    const loadingEl = root.querySelector<HTMLElement>('[data-loading]')!;
+    const pctEl = root.querySelector<HTMLElement>('[data-pct]')!;
+    const hint = root.querySelector<HTMLElement>('[data-hint]')!;
+    const pad = root.querySelector<HTMLElement>('[data-pad]')!;
+    const modeBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-mode]')];
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.domElement.className = 'r3d__canvas';
+    stage.prepend(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const horizon = new THREE.Color('#e7c9b8');
+    scene.fog = new THREE.Fog(horizon, 180, 900);
+
+    // Cielo de atardecer en los colores de la marca
+    const sky = new THREE.Mesh(
+      new THREE.SphereGeometry(1500, 32, 16),
+      new THREE.ShaderMaterial({
+        side: THREE.BackSide, depthWrite: false, fog: false,
+        uniforms: { top: { value: new THREE.Color('#5a3a4c') }, mid: { value: new THREE.Color('#b98a92') }, bottom: { value: horizon } },
+        vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+        fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 bottom; varying vec3 vP; void main(){ float h = vP.y; vec3 c = h < 0.12 ? mix(bottom, mid, smoothstep(0.0, 0.12, h)) : mix(mid, top, smoothstep(0.12, 0.6, h)); gl_FragColor = vec4(c, 1.0); }',
+      }),
+    );
+    scene.add(sky);
+
+    // Luz cálida de atardecer
+    scene.add(new THREE.HemisphereLight('#dfe3ee', '#4f5b2c', 1.25));
+    const sun = new THREE.DirectionalLight('#ffd7b0', 2.6);
+    sun.position.set(-140, 120, 110);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    Object.assign(sun.shadow.camera, { left: -170, right: 170, top: 170, bottom: -170, near: 10, far: 500 });
+    sun.shadow.bias = -0.0006;
+    scene.add(sun);
+
+    // Suelo amplio alrededor del sitio
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(1400, 48), new THREE.MeshLambertMaterial({ color: '#4d6328' }));
+    ground.rotation.x = -Math.PI / 2; ground.position.y = -0.09; ground.receiveShadow = true;
+    scene.add(ground);
+
+    const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 3000);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.07;
+    controls.maxPolarAngle = Math.PI * 0.47; controls.minDistance = 25; controls.maxDistance = 520;
+
+    // Carga
+    const manager = new THREE.LoadingManager();
+    manager.onProgress = (_u, done, total) => { pctEl.textContent = `${Math.round((done / total) * 100)}%`; };
+    const loader = new GLTFLoader(manager);
+    const data: Escena = await (await fetch('/proyecto3d/escena.json')).json();
+    const load = (url: string) => new Promise<any>((res, rej) => loader.load(url, res, (e) => {
+      if (url.includes('sitio') && e.total) pctEl.textContent = `${Math.round((e.loaded / e.total) * 100)}%`;
+    }, rej));
+    const prep = (obj: any, cast: boolean) => obj.traverse((o: any) => {
+      if (o.isMesh) {
+        o.castShadow = cast; o.receiveShadow = true;
+        const m = o.material; if (m && m.transparent) { m.depthWrite = false; o.castShadow = false; }
+      }
+    });
+    const [sitio, ...protos] = await Promise.all(['/proyecto3d/sitio.glb', 1, 2, 3, 4].map((u) => load(typeof u === 'number' ? `/proyecto3d/prototipo-${u}.glb` : u)));
+    prep(sitio.scene, true); scene.add(sitio.scene);
+    protos.forEach((g) => prep(g.scene, true));
+    for (const c of data.casas) {
+      const h = protos[c.p - 1].scene.clone();
+      h.position.set(...c.pos);
+      h.rotation.y = c.rot;
+      h.scale.set(c.sx, 1, c.sz);
+      scene.add(h);
+    }
+    loadingEl.hidden = true;
+
+    // ---- Modos y recorrido
+    let mode: 'orbit' | 'walk' = 'orbit';
+    let yaw = 0, pitch = 0;
+    const eye = 1.75;
+    const keys = new Set<string>();
+    const centro = new THREE.Vector3(...data.centro);
+    let tween: { t: number; from: any; to: any; lf: any; lt: any } | null = null;
+
+    function setMode(m: 'orbit' | 'walk') {
+      mode = m;
+      modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+      controls.enabled = m === 'orbit';
+      pad.hidden = m !== 'walk';
+      hint.textContent = m === 'walk' ? 'Arrastra para mirar · W A S D o flechas para caminar' : 'Arrastra para girar · rueda para acercar';
+      if (m === 'walk') {
+        if (camera.position.y > 20) go('ingreso');
+        const d = new THREE.Vector3(); camera.getWorldDirection(d);
+        yaw = Math.atan2(-d.x, -d.z); pitch = 0;
+      } else {
+        controls.target.copy(centro);
+      }
+    }
+
+    function go(id: string) {
+      const p = data.poi[id]; if (!p) return;
+      const to = new THREE.Vector3(...p.pos), lt = new THREE.Vector3(...p.look);
+      const lf = new THREE.Vector3(); camera.getWorldDirection(lf); lf.multiplyScalar(30).add(camera.position);
+      if (mode === 'orbit') lf.copy(controls.target);
+      tween = { t: 0, from: camera.position.clone(), to, lf, lt };
+      if (id !== 'aerea' && mode !== 'walk') { mode = 'walk'; modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === 'walk'))); controls.enabled = false; pad.hidden = false; hint.textContent = 'Arrastra para mirar · W A S D o flechas para caminar'; }
+      if (id === 'aerea') { mode = 'orbit'; modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === 'orbit'))); pad.hidden = true; }
+    }
+
+    modeBtns.forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode as 'orbit' | 'walk')));
+    root.querySelectorAll<HTMLButtonElement>('[data-stop]').forEach((b) => b.addEventListener('click', () => go(b.dataset.stop!)));
+
+    // Mirar arrastrando en modo caminar
+    let drag = false, lx = 0, ly = 0;
+    renderer.domElement.addEventListener('pointerdown', (e) => { drag = true; lx = e.clientX; ly = e.clientY; hint.hidden = true; });
+    window.addEventListener('pointerup', () => { drag = false; });
+    renderer.domElement.addEventListener('pointermove', (e) => {
+      if (!drag || mode !== 'walk' || tween) return;
+      yaw -= (e.clientX - lx) * 0.0035; pitch = THREE.MathUtils.clamp(pitch - (e.clientY - ly) * 0.0035, -1.2, 1.2);
+      lx = e.clientX; ly = e.clientY;
+    });
+    stage.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
+        keys.add(k); if (k.startsWith('arrow')) e.preventDefault();
+        if (mode !== 'walk' && k !== 'shift') setMode('walk');
+      }
+    });
+    stage.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+    stage.addEventListener('blur', () => keys.clear());
+    // Controles táctiles
+    pad.querySelectorAll<HTMLButtonElement>('[data-move]').forEach((b) => {
+      const k = { f: 'w', b: 's', l: 'a', r: 'd' }[b.dataset.move as 'f' | 'b' | 'l' | 'r'];
+      const on = (e: Event) => { e.preventDefault(); keys.add(k); };
+      const off = () => keys.delete(k);
+      b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
+    });
+
+    root.querySelector<HTMLButtonElement>('[data-full]')!.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen(); else stage.requestFullscreen?.();
+    });
+
+    function resize() {
+      const w = stage.clientWidth, h = stage.clientHeight;
+      renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    }
+    new ResizeObserver(resize).observe(stage); resize();
+
+    let visible = true;
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+
+    go('aerea'); tween!.t = 1; camera.position.copy(tween!.to); controls.target.copy(centro); tween = null;
+
+    const clock = new THREE.Clock();
+    const fwd = new THREE.Vector3(), side = new THREE.Vector3(), look = new THREE.Vector3();
+    renderer.setAnimationLoop(() => {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      if (!visible) return;
+      if (tween) {
+        tween.t = Math.min(1, tween.t + dt / 1.6);
+        const k = tween.t < 0.5 ? 4 * tween.t ** 3 : 1 - (-2 * tween.t + 2) ** 3 / 2;
+        camera.position.lerpVectors(tween.from, tween.to, k);
+        look.lerpVectors(tween.lf, tween.lt, k);
+        camera.lookAt(look);
+        if (tween.t >= 1) {
+          if (mode === 'orbit') { controls.target.copy(centro); }
+          else { const d = new THREE.Vector3().subVectors(tween.lt, tween.to); yaw = Math.atan2(-d.x, -d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }
+          tween = null;
+        }
+      } else if (mode === 'walk') {
+        const speed = (keys.has('shift') ? 9 : 4.2) * dt;
+        fwd.set(-Math.sin(yaw), 0, -Math.cos(yaw)); side.set(-fwd.z, 0, fwd.x);
+        if (keys.has('w') || keys.has('arrowup')) camera.position.addScaledVector(fwd, speed);
+        if (keys.has('s') || keys.has('arrowdown')) camera.position.addScaledVector(fwd, -speed);
+        if (keys.has('arrowleft')) yaw += 1.6 * dt;
+        if (keys.has('arrowright')) yaw -= 1.6 * dt;
+        if (keys.has('a')) camera.position.addScaledVector(side, -speed);
+        if (keys.has('d')) camera.position.addScaledVector(side, speed);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, eye, 0.2);
+        const off = camera.position.clone().sub(centro); off.y = 0;
+        if (off.length() > 260) { off.setLength(260); camera.position.x = centro.x + off.x; camera.position.z = centro.z + off.z; }
+        look.set(Math.sin(yaw + Math.PI) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw + Math.PI) * Math.cos(pitch)).add(camera.position);
+        camera.lookAt(look);
+      } else {
+        controls.update();
+      }
+      renderer.render(scene, camera);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-r3d]').forEach((root) => {
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { io.disconnect(); init(root).catch((err) => { console.error(err); root.querySelector('[data-loading] span')!.textContent = 'No se pudo cargar el recorrido 3D.'; }); }
+    }, { rootMargin: '200px 0px' });
+    io.observe(root);
+  });
+</script>
+
+<style>
+  .r3d__stage { position: relative; width: 100%; height: min(82vh, 820px); min-height: 520px; overflow: hidden; border-radius: 4px; background: #2e1b26; outline: none; touch-action: none; }
+  .r3d__stage:focus-visible { box-shadow: 0 0 0 3px var(--olive); }
+  .r3d__stage:fullscreen { border-radius: 0; height: 100vh; }
+  :global(.r3d__canvas) { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .r3d__loading { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; background: var(--plum); color: var(--beige); font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+  .r3d__loading[hidden] { display: none; }
+  .r3d__loading img { height: 84px; animation: r3d-pulse 1.6s ease-in-out infinite; }
+  @keyframes r3d-pulse { 50% { opacity: .45; } }
+  .r3d__top { position: absolute; z-index: 3; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; gap: 12px; pointer-events: none; }
+  .r3d__top > * { pointer-events: auto; }
+  .r3d__modes { display: inline-flex; padding: 4px; border-radius: 999px; background: rgba(46,27,38,.78); backdrop-filter: blur(6px); }
+  .r3d__modes button, .r3d__stops button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--beige); font: inherit; font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  .r3d__modes button[aria-pressed='true'] { background: var(--beige); color: var(--plum); }
+  .r3d__icon { width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(46,27,38,.78); color: var(--beige); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .r3d__stops { position: absolute; z-index: 3; left: 16px; bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 200px); }
+  .r3d__stops button { background: rgba(83,89,6,.88); min-height: 44px; }
+  .r3d__stops button:hover { background: var(--olive); }
+  .r3d__pad { position: absolute; z-index: 3; right: 16px; bottom: 16px; display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 48px); gap: 6px; }
+  .r3d__pad[hidden] { display: none; }
+  .r3d__pad button { border: 0; border-radius: 10px; background: rgba(46,27,38,.78); color: var(--beige); display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
+  .r3d__pad [data-move='f'] { grid-column: 2; grid-row: 1; }
+  .r3d__pad [data-move='l'] { grid-column: 1; grid-row: 2; }
+  .r3d__pad [data-move='b'] { grid-column: 2; grid-row: 2; }
+  .r3d__pad [data-move='r'] { grid-column: 3; grid-row: 2; }
+  .r3d__hint { position: absolute; z-index: 3; left: 50%; top: 74px; transform: translateX(-50%); margin: 0; padding: 8px 16px; border-radius: 999px; background: rgba(46,27,38,.72); color: var(--beige); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; pointer-events: none; white-space: nowrap; }
+  @media (max-width: 640px) {
+    .r3d__stage { height: 78vh; }
+    .r3d__stops { max-width: calc(100% - 32px); bottom: 136px; }
+    .r3d__hint { display: none; }
+  }
+</style>

@@ -1,0 +1,14 @@
+---
+// Inserta un ícono oficial del brandbook en línea, para poder recolorearlo con
+// las variables --icon-main / --icon-accent.
+import fs from 'node:fs';
+import path from 'node:path';
+interface Props { name: string; size?: number; class?: string; label?: string }
+const { name, size = 64, class: cls = '', label } = Astro.props;
+const file = path.join(process.cwd(), 'public', 'brand', 'iconos', `${name}.svg`);
+let svg = fs.readFileSync(file, 'utf-8');
+svg = svg.replace('<svg ', `<svg width="${size}" height="${size}" class="fl-icon ${cls}" `);
+svg = label ? svg : svg.replace(/role="img" aria-label="[^"]*"/, 'aria-hidden="true"');
+---
+
+<Fragment set:html={svg} />

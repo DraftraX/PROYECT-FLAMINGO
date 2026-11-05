@@ -1,0 +1,30 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Recorrido3D from '../components/Recorrido3D.astro';
+---
+
+<SiteLayout title="Recorrido 3D · Residencial Flamingo" description="Recorre en 3D todo Residencial Flamingo: pórtico, calles, plaza central y las 68 casas del masterplan." overlay={false}>
+  <section class="fl-section--tight">
+    <div class="fl-wrap">
+      <div class="fl-head-row">
+        <div>
+          <p class="fl-eyebrow" data-hero-in>Recorrido 3D</p>
+          <h1 class="fl-h2 fl-h2--xl" data-hero-in>Recorre todo el residencial.</h1>
+        </div>
+        <p class="fl-body fl-body--sm fl-head-row__aside" data-hero-in>Vuela sobre el masterplan o cambia a «Caminar» para recorrer las calles, el pórtico y la plaza a la altura de tus ojos.</p>
+      </div>
+      <div style="margin-top:36px" data-hero-in><Recorrido3D /></div>
+      <div class="howto" data-stagger>
+        <div><strong>Vista aérea</strong><span>Arrastra para girar, rueda o pellizca para acercar.</span></div>
+        <div><strong>Caminar</strong><span>Arrastra para mirar. W A S D o flechas para moverte; Shift para ir más rápido. En el celular usa las flechas en pantalla.</span></div>
+        <div><strong>Paradas</strong><span>Salta al pórtico, al ingreso, a la plaza o a la pérgola con un toque.</span></div>
+      </div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .howto { margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 24px; }
+  .howto div { border-top: 2px solid var(--olive); padding-top: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 14.5px; line-height: 1.6; }
+  .howto strong { font-family: var(--serif); font-weight: 400; font-size: 20px; color: var(--plum); }
+</style>

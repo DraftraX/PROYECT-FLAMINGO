@@ -1,0 +1,242 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHero from '../components/PageHero.astro';
+
+const valores = [
+  { n: '01', t: 'Integridad', d: 'Actuamos con principios y coherencia en cada etapa del proyecto, manteniendo una conducta responsable y respetuosa hacia nuestros clientes.' },
+  { n: '02', t: 'Confianza', d: 'Construimos relaciones basadas en la seguridad y tranquilidad de nuestros clientes, con condiciones claras para decidir con seguridad.' },
+  { n: '03', t: 'Formalidad', d: 'Promovemos una gestión inmobiliaria ordenada y responsable, respaldada por la claridad documental.' },
+  { n: '04', t: 'Compromiso', d: 'Trabajamos con responsabilidad para cumplir con lo que ofrecemos y con nuestra visión de desarrollo residencial.' },
+];
+const rasgos = [
+  { t: 'Sólida', d: 'Transmite estabilidad y respaldo en su propuesta inmobiliaria.' },
+  { t: 'Confiable', d: 'Comunica con honestidad y genera seguridad en sus clientes.' },
+  { t: 'Organizada', d: 'Refleja planificación, estructura y orden en cada aspecto del proyecto.' },
+  { t: 'Profesional', d: 'Mantiene una comunicación seria, clara y responsable.' },
+  { t: 'Visionaria', d: 'Promueve una mirada de futuro y proyección patrimonial.' },
+];
+const tono = [
+  { t: 'Seguro', d: 'Comunica con firmeza, evitando exageraciones y promesas innecesarias.' },
+  { t: 'Profesional', d: 'Utiliza un lenguaje cuidado, formal y coherente con el sector inmobiliario.' },
+  { t: 'Claro', d: 'Explica las características y condiciones del proyecto de manera sencilla y transparente.' },
+  { t: 'Aspiracional', d: 'Conecta la inversión con las posibilidades de crecimiento y desarrollo patrimonial.' },
+  { t: 'Cercano', d: 'Se dirige a las personas con respeto y naturalidad, sin perder su carácter institucional.' },
+];
+const pilares = [
+  { t: 'Ubicación', d: 'Un lugar conectado con Tarapoto y abierto al paisaje.' },
+  { t: 'Infraestructura de servicios', d: 'Agua, desagüe, alumbrado, pistas y veredas.' },
+  { t: 'Privacidad', d: 'Un residencial cerrado con un único ingreso.' },
+  { t: 'Organización residencial', d: 'Manzanas, lotes y áreas comunes planificadas.' },
+];
+const paleta = [
+  { n: 'Ciruela profundo', c: '#462939', p: '518 C', d: 'Solidez y distinción', light: true },
+  { n: 'Beige mineral', c: '#F2EBE1', p: '9924 C', d: 'Equilibrio y proyección', light: false },
+  { n: 'Verde oliva', c: '#535906', p: '378 C', d: 'Naturaleza y desarrollo', light: true },
+  { n: 'Negro contraste', c: '#3D3C3D', p: 'Black C', d: 'Sobriedad y equilibrio', light: true },
+];
+---
+
+<SiteLayout title="Nosotros · Residencial Flamingo" description="Quiénes somos, nuestra historia, misión, visión, valores y la identidad de marca de Residencial Flamingo.">
+  <PageHero eyebrow="Nosotros" title="Una visión que construye futuro." lead="Empresarios que vieron en Tarapoto la oportunidad de invertir con planificación, formalidad y proyección patrimonial." image="/drive/2d/vision-portico.webp" alt="Pórtico de Residencial Flamingo" position="50% 60%" />
+
+  <section class="fl-section">
+    <div class="fl-wrap fl-split" style="align-items:flex-start">
+      <div>
+        <p class="fl-eyebrow" data-reveal>1.0 · ¿Quiénes somos?</p>
+        <h2 class="fl-h2" data-reveal>Espacios para construir futuro y patrimonio.</h2>
+      </div>
+      <div>
+        <p class="fl-body" data-reveal>Flamingo Residencial es un proyecto inmobiliario ubicado en Tarapoto que ofrece espacios donde sus clientes pueden construir su futuro y desarrollar su patrimonio. Ofrece lotes urbanos independizados dentro de un entorno residencial planificado.</p>
+        <p class="fl-body" data-reveal>Su enfoque se centra en una experiencia residencial que prioriza la confianza, el orden y la armonía del entorno, combinando planificación y visión de futuro para quienes buscan invertir o construir su próximo hogar.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-section--sand">
+    <div class="fl-wrap fl-split">
+      <div class="fl-media-clip" data-unveil><img src="/residencial/plaza-aerea.jpg" alt="Vista aérea del residencial" class="fl-photo fl-photo--tall" loading="lazy" /></div>
+      <div>
+        <p class="fl-eyebrow" data-reveal>1.1 · Historia de marca</p>
+        <h2 class="fl-h2" data-reveal>Una alternativa para invertir con confianza.</h2>
+        <p class="fl-body" data-reveal>Flamingo Residencial nace de la visión de empresarios con experiencia en otros sectores que identificaron en Tarapoto una oportunidad para desarrollar una propuesta orientada a la planificación, la formalidad y la proyección patrimonial.</p>
+        <p class="fl-body" data-reveal>Frente a un mercado donde muchos terrenos presentan limitaciones de servicios, documentación u organización del entorno, el proyecto reúne lotes urbanos independizados y busca contribuir al desarrollo residencial de Tarapoto.</p>
+        <p class="fl-quote" style="margin-top:28px" data-reveal>Invertir en un espacio propio y convertir un terreno en patrimonio.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-section--plum">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow fl-eyebrow--light" data-reveal>1.2 · Misión y visión</p>
+      <div class="fl-grid-2" style="margin-top:40px;gap:clamp(40px,6vw,96px)" data-stagger>
+        <div><h3 class="fl-h3" style="color:var(--beige)">Misión</h3><p class="fl-statement">Ofrecer lotes urbanos independizados en un entorno residencial planificado, brindando formalidad, infraestructura y privacidad para invertir con confianza y construir el futuro en Tarapoto.</p></div>
+        <div><h3 class="fl-h3" style="color:var(--beige)">Visión</h3><p class="fl-statement">Ser un referente inmobiliario en Tarapoto por impulsar un desarrollo residencial organizado y planificado, una alternativa de confianza para proyectarse hacia el futuro.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow" data-reveal>1.3 · Valores</p>
+      <h2 class="fl-h2" data-reveal>Lo que nos sostiene.</h2>
+      <div class="fl-values" style="margin-top:56px" data-stagger>
+        {valores.map((v) => (
+          <div class="fl-value"><p class="fl-value__n">{v.n}</p><h3 class="fl-value__t">{v.t}</h3><p class="fl-body fl-body--sm">{v.d}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-section--white">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow" data-reveal>2.0 · Arquetipo de marca</p>
+      <h2 class="fl-h2" data-reveal>Orden y conocimiento.</h2>
+      <div class="fl-grid-2" style="margin-top:48px" data-stagger>
+        <article class="arq">
+          <div class="arq__head"><h3 class="fl-h3">El gobernante</h3><span class="arq__pct">70%</span></div>
+          <div class="arq__bar"><span style="width:70%" data-line></span></div>
+          <p class="fl-body fl-body--sm">Representa el orden, la estabilidad, el liderazgo y el control. Nuestra propuesta se fundamenta en la planificación residencial, la formalidad inmobiliaria y el desarrollo organizado.</p>
+        </article>
+        <article class="arq">
+          <div class="arq__head"><h3 class="fl-h3">El sabio</h3><span class="arq__pct">30%</span></div>
+          <div class="arq__bar"><span style="width:30%" data-line></span></div>
+          <p class="fl-body fl-body--sm">Representa el conocimiento y la claridad. Una inversión inmobiliaria requiere claridad documental, información transparente y condiciones que permitan decidir de forma consciente.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap fl-split" style="align-items:flex-start">
+      <div>
+        <p class="fl-eyebrow" data-reveal>2.1 · Personalidad</p>
+        <h2 class="fl-h2" data-reveal>Clara, segura y directa.</h2>
+        <p class="fl-body" data-reveal>Responsable y firme con lo que ofrece. Orienta, informa y brinda tranquilidad durante el proceso de decisión, con una imagen sobria, contemporánea y distinguida.</p>
+      </div>
+      <div class="fl-tablewrap" data-reveal>
+        <table class="fl-table"><tbody>{rasgos.map((r) => <tr><th scope="row">{r.t}</th><td>{r.d}</td></tr>)}</tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-trama-oliva concept">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow fl-eyebrow--light" data-reveal>2.3 · Concepto rector</p>
+      <h2 class="fl-h2 fl-h2--xl fl-h2--light" style="max-width:900px" data-reveal>Una nueva forma de proyectarse en Tarapoto.</h2>
+      <div class="fl-grid-2" style="margin-top:48px" data-stagger>
+        <p class="fl-body fl-body--light">No se trata únicamente de ofrecer terrenos, sino de plantear una manera más organizada y planificada de invertir: mirar el terreno más allá de su valor inmediato, como parte de una decisión que involucra ubicación, planificación y expectativas de futuro.</p>
+        <p class="fl-body fl-body--light">La palabra <em>proyectarse</em> une la visión de sus promotores al apostar por Tarapoto con las aspiraciones de quienes buscan invertir o establecerse en la ciudad.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap fl-grid-2" style="gap:clamp(40px,6vw,96px)">
+      <div data-reveal>
+        <p class="fl-eyebrow">2.2 · Posicionamiento</p>
+        <p class="fl-body">Una propuesta inmobiliaria diferenciada en Tarapoto, para quienes valoran una inversión respaldada por la planificación, la formalidad y una visión organizada del desarrollo residencial: una manera más estructurada y consciente de elegir dónde invertir.</p>
+      </div>
+      <div data-reveal>
+        <p class="fl-eyebrow">2.4 · Filosofía</p>
+        <p class="fl-quote" style="margin-top:20px">Creemos en el valor de proyectar el futuro.</p>
+        <p class="fl-body">Elegir un espacio propio es apostar por nuevas oportunidades, construir patrimonio y dar forma a nuevos proyectos de vida. Todo gran proyecto necesita un lugar donde empezar.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-section--plum" style="text-align:center">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow fl-eyebrow--light" data-reveal>2.5 · Mantra</p>
+      <h2 class="fl-h2 fl-h2--xl fl-h2--light" style="margin:24px auto 0;max-width:820px" data-reveal>Una inversión que trasciende.</h2>
+      <div class="fl-grid-2" style="margin-top:56px;text-align:left" data-stagger>
+        <div class="fl-stat"><div class="fl-stat__l">Propósito</div><p class="fl-body fl-body--light">Ofrecer una alternativa residencial que permita elegir dónde construir el futuro, con confianza y visión a largo plazo.</p></div>
+        <div class="fl-stat"><div class="fl-stat__l">Diferencial</div><p class="fl-body fl-body--light">Formalidad, infraestructura de servicios, privacidad y planificación para una experiencia residencial organizada en Tarapoto.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow" data-reveal>Pilares de marca</p>
+      <h2 class="fl-h2" data-reveal>Cuatro pilares, un mismo propósito.</h2>
+      <div class="fl-grid-4" style="margin-top:48px" data-stagger>
+        {pilares.map((p, i) => (
+          <div class="pilar"><span class="pilar__n">0{i + 1}</span><h3 class="fl-h3">{p.t}</h3><p class="fl-body fl-body--sm">{p.d}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-section--sand">
+    <div class="fl-wrap fl-split" style="align-items:flex-start">
+      <div>
+        <p class="fl-eyebrow" data-reveal>2.7 · Tono de comunicación</p>
+        <h2 class="fl-h2" data-reveal>Seguro, profesional y aspiracional.</h2>
+        <p class="fl-body" data-reveal>Comunicamos con firmeza y claridad, desde una perspectiva sobria y positiva sobre el valor de los espacios y la proyección patrimonial.</p>
+      </div>
+      <div class="fl-tablewrap" data-reveal>
+        <table class="fl-table"><tbody>{tono.map((r) => <tr><th scope="row">{r.t}</th><td>{r.d}</td></tr>)}</tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow" data-reveal>3.0 · Identidad visual</p>
+      <h2 class="fl-h2" data-reveal>Nuestra marca.</h2>
+      <div class="brand-grid" style="margin-top:48px" data-stagger>
+        <div class="brand-card brand-card--plum">
+          <img src="/brand/brandbook/bird-light.svg" alt="" class="brand-card__bird" />
+          <p class="brand-card__name">FLAMINGO</p><p class="brand-card__sub">RESIDENCIAL</p>
+          <p class="brand-card__cap">Imagotipo · síntesis vectorial del flamenco</p>
+        </div>
+        <div class="brand-card brand-card--light">
+          <img src="/brand/brandbook/isotipo-plum.svg" alt="Isotipo Flamingo: la inicial F integrada al flamenco" class="brand-card__iso" />
+          <p class="brand-card__cap" style="color:var(--plum)">Isotipo · el flamenco y la inicial «F»</p>
+        </div>
+        <div class="brand-card fl-trama-ciruela">
+          <p class="brand-card__cap">Trama · patrón construido desde la tipografía principal</p>
+        </div>
+      </div>
+      <div class="fl-grid-4" style="margin-top:24px" data-stagger>
+        {paleta.map((c) => (
+          <div class="swatch">
+            <div class="swatch__chip" style={`background:${c.c}`}></div>
+            <p class="swatch__n">{c.n}</p>
+            <p class="swatch__d">{c.c} · {c.p}<br />{c.d}</p>
+          </div>
+        ))}
+      </div>
+      <div class="fl-grid-2" style="margin-top:56px" data-stagger>
+        <div class="type"><p class="type__l">Títulos · Geista Mond</p><p class="type__sample" style="font-family:var(--serif)">Aa Bb Cc</p></div>
+        <div class="type"><p class="type__l">Textos · DM Sans</p><p class="type__sample" style="font-family:var(--sans);font-weight:300">Aa Bb Cc</p></div>
+      </div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .arq { padding: 32px; background: var(--beige); border-radius: 4px; border: 1px solid var(--rule); }
+  .arq__head { display: flex; justify-content: space-between; align-items: baseline; }
+  .arq__pct { font-family: var(--serif); font-size: 40px; color: var(--olive); }
+  .arq__bar { margin-top: 18px; height: 4px; background: var(--olive-soft); border-radius: 2px; overflow: hidden; }
+  .arq__bar span { display: block; height: 100%; background: var(--olive); }
+  .concept { color: var(--beige); }
+  .pilar { border-top: 2px solid var(--olive); padding-top: 20px; }
+  .pilar__n { display: block; margin-bottom: 14px; font-family: var(--serif); color: var(--olive); }
+  .brand-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 24px; }
+  .brand-card { min-height: 340px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; position: relative; color: var(--beige); }
+  .brand-card--plum { background: var(--plum); }
+  .brand-card--light { background: #faf7f2; border: 1px solid var(--rule); }
+  .brand-card__bird { height: 120px; width: auto; }
+  .brand-card__iso { height: 150px; width: auto; }
+  .brand-card__name { margin: 18px 0 0; font-family: var(--serif); font-size: 44px; letter-spacing: .03em; line-height: 1; }
+  .brand-card__sub { margin: 10px 0 0; font-size: 11px; letter-spacing: .7em; padding-left: .7em; }
+  .brand-card__cap { position: absolute; left: 24px; right: 24px; bottom: 20px; margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,235,225,.85); }
+  .swatch__chip { height: 120px; border-radius: 4px; border: 1px solid var(--rule); }
+  .swatch__n { margin: 14px 0 0; font-weight: 500; color: var(--plum); }
+  .swatch__d { margin: 6px 0 0; font-size: 13px; line-height: 1.6; }
+  .type { border-top: 1px solid var(--rule); padding-top: 20px; }
+  .type__l { margin: 0; font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--olive); }
+  .type__sample { margin: 12px 0 0; font-size: clamp(56px, 7vw, 96px); line-height: 1; color: var(--plum); }
+</style>

@@ -1,0 +1,109 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Icono from '../components/Icono.astro';
+import { atributos } from '../config/site';
+---
+
+<SiteLayout title="El proyecto · Residencial Flamingo" description="Masterplan de Residencial Flamingo: 68 lotes en 8 manzanas, pórtico de ingreso, plaza central y servicios completos en Tarapoto.">
+  <PageHero eyebrow="El proyecto" title="Un residencial planificado en cada detalle." lead="68 lotes independizados de 160 y 200 m², organizados en 8 manzanas alrededor de una plaza central." image="/residencial/plaza-aerea.jpg" alt="Vista aérea de la plaza central de Residencial Flamingo">
+    <div style="margin-top:32px" data-hero-in><a href="/recorrido" class="fl-btn fl-btn--solid">Recorrer en 3D</a></div>
+  </PageHero>
+
+  <section class="fl-section--tight fl-trama-oliva" style="color:var(--beige)" aria-label="Cifras del proyecto">
+    <div class="fl-wrap fl-grid-4" data-stagger>
+      <div class="fl-stat"><div class="fl-stat__n" data-count="68">68</div><div class="fl-stat__l">Lotes</div></div>
+      <div class="fl-stat"><div class="fl-stat__n">160 · 200</div><div class="fl-stat__l">m² por lote</div></div>
+      <div class="fl-stat"><div class="fl-stat__n" data-count="8">8</div><div class="fl-stat__l">Manzanas (A–H)</div></div>
+      <div class="fl-stat"><div class="fl-stat__n">1 134 m²</div><div class="fl-stat__l">Plaza central</div></div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap">
+      <div class="fl-head-row">
+        <div>
+          <p class="fl-eyebrow" data-reveal>Masterplan</p>
+          <h2 class="fl-h2" data-reveal>Del terreno actual al residencial proyectado.</h2>
+        </div>
+        <p class="fl-body fl-body--sm fl-head-row__aside" data-reveal>Lotes, manzanas y vías tomados del plano oficial de distribución.</p>
+      </div>
+      <figure class="fl-figure" style="margin-top:48px" data-reveal>
+        <video src="/videos/flamingo-masterplan.mp4" poster="/videos/flamingo-masterplan.jpg" autoplay muted loop playsinline preload="metadata" class="fl-photo fl-photo--wide" aria-label="Transformación del terreno al residencial"></video>
+        <figcaption>Estado actual con trazado de lotes · residencial terminado</figcaption>
+      </figure>
+      <div class="fl-grid-2" style="margin-top:48px" data-stagger>
+        <div class="lot">
+          <p class="lot__dim">8 × 20 m</p><h3 class="fl-h3">Lote de 160 m²</h3>
+          <p class="fl-body fl-body--sm">Ideal para los prototipos 01 y 02, con cochera simple, jardín posterior y retiro frontal.</p>
+        </div>
+        <div class="lot">
+          <p class="lot__dim">10 × 20 m</p><h3 class="fl-h3">Lote de 200 m²</h3>
+          <p class="fl-body fl-body--sm">Para los prototipos 03 y 04, con cochera doble y ambientes más amplios.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-section--sand">
+    <div class="fl-wrap fl-split">
+      <div class="fl-media-clip" data-unveil><img src="/residencial/portico.jpg" alt="Pórtico de ingreso con torre de piedra y portones de madera" class="fl-photo" loading="lazy" /></div>
+      <div>
+        <p class="fl-eyebrow" data-reveal>Pórtico de ingreso</p>
+        <h2 class="fl-h2" data-reveal>Un ingreso con identidad.</h2>
+        <p class="fl-body" data-reveal>Torre de piedra apilada con el flamenco, marquesina blanca volada con iluminación LED y portones de listones de madera. Un único acceso controlado sobre Prolongación Cuzco.</p>
+        <div class="mini-icons" data-stagger>
+          <span><Icono name="portico" size={48} /> Acceso controlado</span>
+          <span><Icono name="residencial-cerrada" size={48} /> Cerco perimétrico</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap">
+      <div class="fl-head-row">
+        <div>
+          <p class="fl-eyebrow" data-reveal>Plaza central</p>
+          <h2 class="fl-h2" data-reveal>Un corazón verde para encontrarse.</h2>
+        </div>
+        <p class="fl-body fl-body--sm fl-head-row__aside" data-reveal>Caminos en diagonal, pileta central, maceteros iluminados con palmeras, pérgola de madera y juegos infantiles.</p>
+      </div>
+      <div class="fl-grid-2" style="margin-top:48px" data-stagger>
+        <figure class="fl-figure"><img src="/residencial/plaza-central.jpg" alt="Caminos y pileta en la plaza central" class="fl-photo" loading="lazy" /><figcaption>Pileta y maceteros iluminados</figcaption></figure>
+        <figure class="fl-figure"><img src="/drive/2d/vision-park.webp" alt="Jardines y palmeras del parque" class="fl-photo" loading="lazy" /><figcaption>Jardines y palmeras</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-section--white">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow" data-reveal>Atributos</p>
+      <h2 class="fl-h2" data-reveal>Todo lo que necesitas para construir.</h2>
+      <div class="fl-grid-3" style="margin-top:56px" data-stagger>
+        {atributos.map((a) => (
+          <article class="fl-iconcard"><Icono name={a.icon} /><h3 class="fl-iconcard__t">{a.t}</h3><p>{a.d}</p></article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap fl-split">
+      <div>
+        <p class="fl-eyebrow" data-reveal>Vías internas</p>
+        <h2 class="fl-h2" data-reveal>Pistas, veredas y retiros.</h2>
+        <p class="fl-body" data-reveal>Jirones Mallorca, Barcelona, Sevilla, Madrid, Segovia y Girona conectan las manzanas con veredas, jardines frontales y alumbrado público.</p>
+        <a href="/recorrido" class="fl-link" style="margin-top:28px" data-reveal>Recorrer las calles en 3D →</a>
+      </div>
+      <div class="fl-media-clip" data-unveil><img src="/drive/2d/vision-avenue.webp" alt="Avenida interna con veredas y áreas verdes" class="fl-photo" loading="lazy" /></div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .lot { padding: 32px; border: 1px solid var(--rule); border-radius: 4px; background: #faf7f2; }
+  .lot__dim { margin: 0 0 12px; font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--olive); }
+  .mini-icons { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 28px; }
+  .mini-icons span { display: inline-flex; align-items: center; gap: 12px; font-size: 14px; color: var(--plum); }
+</style>

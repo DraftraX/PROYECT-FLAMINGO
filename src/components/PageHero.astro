@@ -1,0 +1,22 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+  image: string;
+  alt: string;
+  position?: string;
+}
+const { eyebrow, title, lead, image, alt, position = '50% 50%' } = Astro.props;
+---
+
+<section class="fl-pagehero">
+  <img src={image} alt={alt} class="fl-pagehero__img" style={`object-position:${position}`} data-parallax fetchpriority="high" />
+  <div class="fl-pagehero__shade" aria-hidden="true"></div>
+  <div class="fl-wrap fl-pagehero__body">
+    <p class="fl-eyebrow fl-eyebrow--light" data-hero-in>{eyebrow}</p>
+    <h1 class="fl-h1" data-hero-in>{title}</h1>
+    {lead && <p class="fl-pagehero__lead" data-hero-in>{lead}</p>}
+    <slot />
+  </div>
+</section>

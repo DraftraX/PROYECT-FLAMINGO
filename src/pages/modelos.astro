@@ -1,0 +1,85 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import RecorridoVirtual from '../components/RecorridoVirtual.astro';
+import { contacto, whatsapp } from '../config/site';
+
+// Medidas referenciales, proyectadas sobre los lotes tipo del plano (8×20 y 10×20 m).
+const prototipos = [
+  { n: '01', lote: '8 × 20 m · 160 m²', area: '185 m²', pisos: '2 pisos + azotea', dorm: '3 dormitorios', banos: '3 baños', extra: '1 cochera', acabado: 'Piso de roble · muebles ciruela' },
+  { n: '02', lote: '8 × 20 m · 160 m²', area: '205 m²', pisos: '2 pisos + rooftop', dorm: '3 dormitorios + estudio', banos: '3.5 baños', extra: '1 cochera', acabado: 'Porcelanato · madera nogal' },
+  { n: '03', lote: '10 × 20 m · 200 m²', area: '245 m²', pisos: '2 pisos + rooftop', dorm: '4 dormitorios', banos: '4 baños', extra: '2 cocheras', acabado: 'Travertino · piedra apilada' },
+  { n: '04', lote: '10 × 20 m · 200 m²', area: '270 m²', pisos: '2 pisos + rooftop con pérgola', dorm: '4 dormitorios + terraza', banos: '4.5 baños', extra: '2 cocheras', acabado: 'Piso nogal · pizarra' },
+];
+---
+
+<SiteLayout title="Modelos de casa · Residencial Flamingo" description="Cuatro prototipos de casa para Residencial Flamingo, con áreas referenciales y recorrido virtual 360° de sala, cocina, dormitorio y rooftop.">
+  <PageHero eyebrow="Modelos de casa" title="Arquitectura definida para el condominio." lead="Cuatro prototipos con un mismo lenguaje: marcos blancos, piedra, madera y luz natural." image="/modelos/prototipo-4.jpg" alt="Fachada del prototipo 04" position="50% 35%" />
+
+  <section class="fl-section">
+    <div class="fl-wrap">
+      <div class="models" data-stagger>
+        {prototipos.map((p) => (
+          <article class="model">
+            <div class="model__media"><img src={`/modelos/prototipo-${Number(p.n)}.jpg`} alt={`Fachada del prototipo ${p.n}`} loading="lazy" /></div>
+            <div class="model__body">
+              <p class="model__lot">{p.lote}</p>
+              <h2 class="model__name">Prototipo {p.n}</h2>
+              <dl class="model__specs">
+                <div><dt>Área techada</dt><dd>{p.area}</dd></div>
+                <div><dt>Niveles</dt><dd>{p.pisos}</dd></div>
+                <div><dt>Ambientes</dt><dd>{p.dorm}</dd></div>
+                <div><dt>Baños</dt><dd>{p.banos}</dd></div>
+                <div><dt>Estacionamiento</dt><dd>{p.extra}</dd></div>
+                <div><dt>Acabados</dt><dd>{p.acabado}</dd></div>
+              </dl>
+              <a href={`#recorrido`} class="fl-link" data-tour-proto={Number(p.n)}>Recorrer por dentro →</a>
+            </div>
+          </article>
+        ))}
+      </div>
+      <div class="models__foot" data-reveal>
+        <p class="fl-body fl-body--sm" style="margin:0">Áreas y distribuciones referenciales. Solicita planos y precios de cada prototipo.</p>
+        <a href={whatsapp(contacto.central.raw, 'Hola, quiero los planos y precios de los prototipos de Residencial Flamingo.')} class="fl-btn fl-btn--plum" target="_blank" rel="noopener">Solicitar planos</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="recorrido" class="fl-section fl-section--sand">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow" data-reveal>Recorrido virtual 360°</p>
+      <h2 class="fl-h2" data-reveal>Camina por dentro de cada prototipo.</h2>
+      <p class="fl-body fl-body--sm fl-measure" data-reveal>Elige un prototipo y un ambiente, o usa los puntos dentro de la vista para pasar de la sala a la cocina, al dormitorio y al rooftop.</p>
+      <div style="margin-top:36px"><RecorridoVirtual /></div>
+    </div>
+  </section>
+</SiteLayout>
+
+<script>
+  // "Recorrer por dentro" abre el visor en el prototipo elegido.
+  document.querySelectorAll<HTMLAnchorElement>('[data-tour-proto]').forEach((a) => {
+    a.addEventListener('click', () => {
+      const id = a.dataset.tourProto;
+      setTimeout(() => document.querySelector<HTMLButtonElement>(`[data-rv] [data-proto="${id}"]`)?.click(), 600);
+    });
+  });
+</script>
+
+<style>
+  .models { display: grid; gap: 32px; }
+  .model { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 0; background: #faf7f2; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+  .model:nth-child(even) .model__media { order: 2; }
+  .model__media { overflow: hidden; min-height: 380px; }
+  .model__media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+  .model:hover .model__media img { transform: scale(1.04); }
+  .model__body { padding: clamp(28px, 4vw, 56px); display: flex; flex-direction: column; justify-content: center; }
+  .model__lot { margin: 0; font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--olive); }
+  .model__name { margin: 14px 0 0; font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 3.4vw, 48px); color: var(--plum); }
+  .model__specs { margin: 26px 0 30px; display: grid; gap: 10px; }
+  .model__specs div { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 14.5px; }
+  .model__specs dt { color: rgba(61,60,61,.75); }
+  .model__specs dd { margin: 0; text-align: right; }
+  .model .fl-link { align-self: flex-start; }
+  .models__foot { margin-top: 40px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; }
+  @media (max-width: 760px) { .model:nth-child(even) .model__media { order: 0; } }
+</style>

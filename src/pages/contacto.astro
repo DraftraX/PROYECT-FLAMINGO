@@ -1,0 +1,118 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Icono from '../components/Icono.astro';
+import { contacto, whatsapp } from '../config/site';
+---
+
+<SiteLayout title="Contacto · Residencial Flamingo" description="Agenda tu visita a Residencial Flamingo en Tarapoto. Escríbenos por WhatsApp o déjanos tus datos." overlay={false} prefooter={false}>
+  <section class="fl-section contact">
+    <div class="fl-wrap contact__grid">
+      <div>
+        <p class="fl-eyebrow" data-hero-in>Contacto</p>
+        <h1 class="fl-h1 contact__title" data-hero-in>Agenda tu visita.</h1>
+        <p class="fl-body fl-body--lg" data-hero-in>Déjanos tus datos y un asesor te contactará para coordinar una visita guiada al residencial.</p>
+        <ul class="contact__list" data-stagger>
+          <li><Icono name="calendario" size={44} /><div><strong>Visitas guiadas</strong><span>Lunes a sábado, previa coordinación.</span></div></li>
+          <li><Icono name="ubicacion-estrategica" size={44} /><div><strong>Ubicación</strong><a href={contacto.mapa} target="_blank" rel="noopener">{contacto.direccion}</a></div></li>
+          <li><Icono name="documentos" size={44} /><div><strong>Central</strong><a href={whatsapp(contacto.central.raw)} target="_blank" rel="noopener">{contacto.central.display}</a></div></li>
+          <li><Icono name="seguridad" size={44} /><div><strong>Asesores</strong><span>{contacto.asesores.map((a, i) => <>{i > 0 && ' · '}<a href={whatsapp(a.raw)} target="_blank" rel="noopener">{a.display}</a></>)}</span></div></li>
+        </ul>
+      </div>
+
+      <form id="formulario" class="form" data-form novalidate data-reveal>
+        <h2 class="fl-h3">Solicitar información</h2>
+        <p class="form__note">Al enviar, se abrirá WhatsApp con tu mensaje listo para un asesor.</p>
+        <div class="form__row">
+          <label for="f-nombre">Nombre completo</label>
+          <input id="f-nombre" name="nombre" type="text" autocomplete="name" required />
+        </div>
+        <div class="form__row form__row--2">
+          <div>
+            <label for="f-tel">Celular</label>
+            <input id="f-tel" name="telefono" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" />
+          </div>
+          <div>
+            <label for="f-email">Correo (opcional)</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" />
+          </div>
+        </div>
+        <fieldset class="form__row">
+          <legend>Me interesa</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="interes" value="Lote de 160 m²" checked /> Lote de 160 m²</label>
+            <label class="chip"><input type="radio" name="interes" value="Lote de 200 m²" /> Lote de 200 m²</label>
+            <label class="chip"><input type="radio" name="interes" value="Lote con casa (prototipo)" /> Lote con casa</label>
+          </div>
+        </fieldset>
+        <div class="form__row">
+          <label for="f-asesor">Asesor</label>
+          <select id="f-asesor" name="asesor">
+            <option value={contacto.central.raw}>Central · {contacto.central.display}</option>
+            {contacto.asesores.map((a) => <option value={a.raw}>Asesor · {a.display}</option>)}
+          </select>
+        </div>
+        <div class="form__row">
+          <label for="f-msg">Mensaje (opcional)</label>
+          <textarea id="f-msg" name="mensaje" rows="4" placeholder="Por ejemplo: quiero visitar el sábado por la mañana."></textarea>
+        </div>
+        <label class="form__check"><input type="checkbox" name="acepto" required /> Acepto ser contactado por Residencial Flamingo.</label>
+        <p class="form__error" data-error role="alert" hidden></p>
+        <button type="submit" class="fl-btn fl-btn--olive form__submit">Enviar por WhatsApp</button>
+      </form>
+    </div>
+  </section>
+</SiteLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-form]');
+  const err = document.querySelector<HTMLElement>('[data-error]');
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      const first = form.querySelector<HTMLInputElement>(':invalid');
+      if (err) { err.hidden = false; err.textContent = 'Completa tu nombre, un celular válido y acepta ser contactado.'; }
+      first?.focus();
+      return;
+    }
+    if (err) err.hidden = true;
+    const d = new FormData(form);
+    const lines = [
+      'Hola, quiero información sobre Residencial Flamingo.',
+      `Nombre: ${d.get('nombre')}`,
+      `Celular: ${d.get('telefono')}`,
+      d.get('email') ? `Correo: ${d.get('email')}` : '',
+      `Me interesa: ${d.get('interes')}`,
+      d.get('mensaje') ? `Mensaje: ${d.get('mensaje')}` : '',
+    ].filter(Boolean);
+    window.open(`https://wa.me/${d.get('asesor')}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank', 'noopener');
+  });
+</script>
+
+<style>
+  .contact { padding-top: clamp(56px, 7vw, 96px); }
+  .contact__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: clamp(40px, 6vw, 96px); align-items: start; }
+  .contact__title { color: var(--plum); margin-top: 18px; font-size: clamp(44px, 5.4vw, 80px); }
+  .contact__list { list-style: none; margin: 40px 0 0; padding: 0; display: grid; gap: 22px; }
+  .contact__list li { display: flex; gap: 18px; align-items: center; padding-bottom: 22px; border-bottom: 1px solid var(--rule); }
+  .contact__list div { display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+  .contact__list strong { font-family: var(--serif); font-weight: 400; font-size: 20px; color: var(--plum); }
+  .contact__list a { color: var(--ink); }
+  .form { background: #faf7f2; border: 1px solid var(--rule); border-radius: 4px; padding: clamp(28px, 4vw, 48px); display: grid; gap: 20px; }
+  .form__note { margin: -8px 0 0; font-size: 14px; color: rgba(61,60,61,.8); }
+  .form__row { display: grid; gap: 8px; border: 0; padding: 0; margin: 0; }
+  .form__row--2 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+  .form__row--2 > div { display: grid; gap: 8px; }
+  .form label, .form legend { font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--plum); }
+  .form input[type='text'], .form input[type='tel'], .form input[type='email'], .form select, .form textarea {
+    font: inherit; font-size: 16px; color: var(--ink); background: var(--beige); border: 1px solid rgba(70,41,57,.28); border-radius: 4px; padding: 13px 14px; min-height: 48px; width: 100%; box-sizing: border-box;
+  }
+  .form input:focus-visible, .form select:focus-visible, .form textarea:focus-visible { outline: 2px solid var(--olive); outline-offset: 1px; border-color: var(--olive); }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid rgba(70,41,57,.28); border-radius: 999px; cursor: pointer; text-transform: none !important; letter-spacing: 0 !important; font-size: 14.5px !important; color: var(--ink) !important; }
+  .chip:has(input:checked) { background: var(--plum); color: var(--beige) !important; border-color: var(--plum); }
+  .chip input { accent-color: var(--olive); }
+  .form__check { display: flex; gap: 10px; align-items: flex-start; text-transform: none !important; letter-spacing: 0 !important; font-size: 14.5px !important; color: var(--ink) !important; }
+  .form__check input { width: 20px; height: 20px; accent-color: var(--olive); margin-top: 1px; }
+  .form__error { margin: 0; color: #9b2c2c; font-size: 14px; }
+  .form__submit { justify-self: start; }
+</style>

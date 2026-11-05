@@ -1,12 +1,154 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import LandingFlamingo from '../components/LandingFlamingo.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Icono from '../components/Icono.astro';
+import { atributos } from '../config/site';
+
+const destacados = atributos.filter((a) => ['portico', 'areas-verdes', 'seguridad', 'pistas-y-veredas', 'documentos', 'ubicacion-estrategica'].includes(a.icon));
+const paginas = [
+  { href: '/proyecto', n: '01', t: 'El proyecto', d: 'Masterplan, pórtico y plaza central', img: '/residencial/plaza-aerea.jpg' },
+  { href: '/modelos', n: '02', t: 'Modelos de casa', d: 'Cuatro prototipos y recorrido 360°', img: '/modelos/prototipo-3.jpg' },
+  { href: '/recorrido', n: '03', t: 'Recorrido 3D', d: 'Camina por todo el residencial', img: '/videos/flamingo-masterplan.jpg' },
+  { href: '/nosotros', n: '04', t: 'Nosotros', d: 'Nuestra visión y nuestra marca', img: '/drive/2d/vision-portico.webp' },
+];
 ---
 
-<Layout
-  title="Residencial Flamingo · Una nueva forma de proyectarse en Tarapoto"
-  description="Residencial Flamingo: lotes urbanos independizados de 160 m² y 200 m² en un entorno residencial planificado en Tarapoto, frente a la Cordillera Escalera."
-  lockViewport={false}
->
-  <LandingFlamingo />
-</Layout>
+<SiteLayout title="Residencial Flamingo · Una nueva forma de proyectarse en Tarapoto" description="Residencial Flamingo: lotes urbanos independizados de 160 m² y 200 m² en un entorno residencial planificado en Tarapoto, frente a la Cordillera Escalera.">
+  <section class="hero">
+    <img src="/brand/brandbook/atardecer-escalera.jpg" alt="Atardecer sobre la Cordillera Escalera, Tarapoto" class="hero__img" data-parallax fetchpriority="high" />
+    <div class="hero__shade" aria-hidden="true"></div>
+    <div class="fl-wrap hero__body">
+      <p class="fl-eyebrow fl-eyebrow--light" data-hero-in>Tarapoto · San Martín · Perú</p>
+      <h1 class="fl-h1 hero__title" data-hero-in>Una nueva forma de proyectarse en Tarapoto.</h1>
+      <div class="hero__foot" data-hero-in>
+        <p class="hero__lead">Lotes urbanos independizados en un entorno residencial planificado, con vista a la Cordillera Escalera.</p>
+        <div class="hero__actions">
+          <a href="/recorrido" class="fl-btn fl-btn--solid">Recorrer el proyecto</a>
+          <a href="/proyecto" class="fl-btn fl-btn--ghost">Conocer más</a>
+        </div>
+      </div>
+    </div>
+    <a href="#mantra" class="hero__scroll" aria-label="Bajar al contenido"><span></span></a>
+  </section>
+
+  <section id="mantra" class="fl-section mantra">
+    <div class="fl-wrap">
+      <img src="/brand/brandbook/isotipo-plum.svg" alt="" class="mantra__iso" data-reveal />
+      <h2 class="fl-h2 fl-h2--xl mantra__t" data-reveal>Una inversión que trasciende.</h2>
+      <p class="fl-body fl-body--lg mantra__p" data-reveal>Una propuesta inmobiliaria que reconoce el valor de cada terreno como una oportunidad para construir patrimonio y abrir nuevas posibilidades de crecimiento.</p>
+    </div>
+  </section>
+
+  <section class="fl-section" style="padding-top:0">
+    <div class="fl-wrap fl-split">
+      <div class="fl-media-clip" data-unveil>
+        <img src="/drive/2d/vision-portico.webp" alt="Pórtico de ingreso de Residencial Flamingo al atardecer" class="fl-photo fl-photo--tall" loading="lazy" />
+      </div>
+      <div>
+        <p class="fl-eyebrow" data-reveal>Quiénes somos</p>
+        <h2 class="fl-h2" data-reveal>Una visión que construye futuro.</h2>
+        <p class="fl-body" data-reveal>Flamingo Residencial es un proyecto inmobiliario en Tarapoto que ofrece lotes urbanos independizados dentro de un entorno residencial planificado, sustentado en cuatro pilares: ubicación, infraestructura de servicios, privacidad y organización residencial.</p>
+        <hr class="fl-rule" data-line />
+        <a href="/nosotros" class="fl-link" data-reveal>Nuestra historia y nuestra marca →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section--tight fl-trama-oliva stats" aria-label="El residencial en cifras">
+    <div class="fl-wrap fl-grid-4" data-stagger>
+      <div class="fl-stat"><div class="fl-stat__n" data-count="68">68</div><div class="fl-stat__l">Lotes independizados</div></div>
+      <div class="fl-stat"><div class="fl-stat__n" data-count="8">8</div><div class="fl-stat__l">Manzanas</div></div>
+      <div class="fl-stat"><div class="fl-stat__n"><span data-count="1134">1 134</span> m²</div><div class="fl-stat__l">Plaza central</div></div>
+      <div class="fl-stat"><div class="fl-stat__n" data-count="4">4</div><div class="fl-stat__l">Prototipos de casa</div></div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap">
+      <div class="fl-head-row">
+        <div>
+          <p class="fl-eyebrow" data-reveal>Lo que encontrarás</p>
+          <h2 class="fl-h2" data-reveal>Un entorno planificado, pensado para habitar.</h2>
+        </div>
+        <a href="/proyecto" class="fl-link" data-reveal>Ver todos los atributos →</a>
+      </div>
+      <div class="fl-grid-3" style="margin-top:56px" data-stagger>
+        {destacados.map((a) => (
+          <article class="fl-iconcard">
+            <Icono name={a.icon} />
+            <h3 class="fl-iconcard__t">{a.t}</h3>
+            <p>{a.d}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section fl-section--sand">
+    <div class="fl-wrap">
+      <p class="fl-eyebrow" data-reveal>Explora</p>
+      <h2 class="fl-h2" data-reveal>Conoce Residencial Flamingo.</h2>
+      <div class="fl-grid-2" style="margin-top:48px" data-stagger>
+        {paginas.map((p) => (
+          <a href={p.href} class="fl-tile">
+            <img src={p.img} alt="" loading="lazy" />
+            <span class="fl-tile__body">
+              <span class="fl-tile__n">{p.n}</span>
+              <span class="fl-tile__t">{p.t}</span>
+              <span>{p.d}</span>
+              <span class="fl-tile__go">Entrar →</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="fl-section">
+    <div class="fl-wrap">
+      <div class="fl-head-row">
+        <div>
+          <p class="fl-eyebrow" data-reveal>Del terreno al residencial</p>
+          <h2 class="fl-h2" data-reveal>Así se transforma el proyecto.</h2>
+        </div>
+        <p class="fl-body fl-body--sm fl-head-row__aside" data-reveal>El estado actual de los lotes y el residencial proyectado, con pórtico, plaza y casas.</p>
+      </div>
+      <figure class="fl-figure" style="margin-top:48px" data-reveal>
+        <video src="/videos/flamingo-masterplan.mp4" poster="/videos/flamingo-masterplan.jpg" autoplay muted loop playsinline preload="metadata" class="fl-photo fl-photo--wide" aria-label="Recorrido aéreo del estado actual al residencial proyectado"></video>
+        <figcaption>Recorrido aéreo · 68 lotes, 8 manzanas y plaza central</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="landscape">
+    <img src="/tarapoto/cordillera-escalera-valle.webp" alt="Cordillera Escalera, Tarapoto" loading="lazy" class="landscape__img" data-parallax />
+    <div class="landscape__shade" aria-hidden="true"></div>
+    <div class="fl-wrap landscape__body">
+      <p class="fl-eyebrow fl-eyebrow--light" data-reveal>El paisaje</p>
+      <h2 class="fl-h2 fl-h2--xl fl-h2--light" data-reveal>Frente a la Cordillera Escalera.</h2>
+      <p class="fl-body fl-body--light" style="max-width:520px" data-reveal>El horizonte verde que acompaña cada atardecer en Tarapoto.</p>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .hero { position: relative; min-height: max(760px, 100svh); display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; background: #2a1822; color: var(--beige); }
+  .hero__img { position: absolute; inset: -6% 0 0 0; width: 100%; height: 112%; object-fit: cover; object-position: 50% 40%; }
+  .hero__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(42,24,34,.55) 0%, rgba(42,24,34,0) 30%, rgba(42,24,34,0) 55%, rgba(30,22,20,.72) 100%); }
+  .hero__body { position: relative; padding-bottom: 88px; }
+  .hero__title { max-width: 900px; margin-top: 20px; }
+  .hero__foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 32px; margin-top: 40px; }
+  .hero__lead { margin: 0; max-width: 460px; font-size: 17px; line-height: 1.6; color: rgba(242,235,225,.88); font-weight: 300; }
+  .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .hero__scroll { position: absolute; left: 50%; bottom: 24px; width: 26px; height: 42px; border: 1px solid rgba(242,235,225,.6); border-radius: 14px; transform: translateX(-50%); }
+  .hero__scroll span { position: absolute; left: 50%; top: 8px; width: 3px; height: 8px; margin-left: -1.5px; border-radius: 2px; background: var(--beige); animation: fl-wheel 1.8s infinite; }
+  @keyframes fl-wheel { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(14px); } }
+  .mantra { text-align: center; }
+  .mantra__iso { height: 96px; width: auto; display: block; margin: 0 auto; }
+  .mantra__t { margin: 32px auto 0; max-width: 820px; }
+  .mantra__p { margin: 26px auto 0; max-width: 640px; }
+  .stats { color: var(--beige); }
+  .landscape { position: relative; min-height: 680px; overflow: hidden; display: flex; align-items: flex-end; }
+  .landscape__img { position: absolute; inset: -8% 0 0 0; width: 100%; height: 116%; object-fit: cover; }
+  .landscape__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(42,24,34,0) 35%, rgba(42,24,34,.8) 100%); }
+  .landscape__body { position: relative; padding-bottom: 72px; color: var(--beige); }
+</style>

@@ -1,0 +1,182 @@
+---
+import Layout from './Layout.astro';
+import '../styles/site.css';
+import { contacto, nav, whatsapp } from '../config/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Header transparente sobre una imagen (portada y páginas con hero). */
+  overlay?: boolean;
+  /** Mostrar el bloque final de llamada a la acción antes del footer. */
+  prefooter?: boolean;
+}
+const { title, description, overlay = true, prefooter = true } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<Layout title={title} description={description} lockViewport={false}>
+  <div class="fl-page">
+    <header class:list={['fl-header', { 'fl-header--solid': !overlay }]} data-header>
+      <nav class="fl-nav fl-wrap" aria-label="Principal">
+        <a href="/" class="fl-brand" aria-label="Residencial Flamingo, inicio">
+          <img src={overlay ? '/brand/brandbook/bird-light.svg' : '/brand/brandbook/bird-plum.svg'} alt="" class="fl-brand__bird" />
+          <span class="fl-brand__text">
+            <span class="fl-brand__name">FLAMINGO</span>
+            <span class="fl-brand__sub">RESIDENCIAL</span>
+          </span>
+        </a>
+        <div class="fl-nav__links">
+          {nav.map((n) => <a href={n.href} aria-current={path === n.href ? 'page' : undefined}>{n.label}</a>)}
+        </div>
+        <div class="fl-nav__cta">
+          <a href="/contacto#formulario" class="fl-btn fl-btn--ghost">Agenda tu visita</a>
+          <button type="button" class="fl-menu-btn" aria-label="Abrir menú" aria-expanded="false" data-menu-open>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <div class="fl-drawer" data-drawer aria-hidden="true">
+      <div class="fl-drawer__top">
+        <span class="fl-brand"><img src="/brand/brandbook/bird-light.svg" alt="" class="fl-brand__bird" /><span class="fl-brand__text"><span class="fl-brand__name">FLAMINGO</span><span class="fl-brand__sub">RESIDENCIAL</span></span></span>
+        <button type="button" class="fl-menu-btn" style="display:inline-flex" aria-label="Cerrar menú" data-menu-close>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+      </div>
+      <a href="/" class="fl-drawer__link">Inicio</a>
+      {nav.map((n) => <a href={n.href} class="fl-drawer__link">{n.label}</a>)}
+      <a href={whatsapp(contacto.central.raw)} class="fl-btn fl-btn--solid" style="margin-top:28px" target="_blank" rel="noopener">WhatsApp {contacto.central.display}</a>
+    </div>
+
+    <main>
+      <slot />
+    </main>
+
+    {prefooter && (
+      <section class="fl-prefooter fl-trama-ciruela" aria-labelledby="prefooter-t">
+        <img src="/brand/brandbook/isotipo-light.svg" alt="" class="fl-prefooter__iso" data-reveal />
+        <h2 id="prefooter-t" class="fl-h2 fl-h2--xl fl-h2--light" data-reveal>Elige dónde construir tu futuro.</h2>
+        <p class="fl-body fl-body--light fl-body--lg" style="max-width:520px;margin:22px auto 0" data-reveal>Agenda una visita guiada y conoce el residencial en persona.</p>
+        <div class="fl-prefooter__actions" data-reveal>
+          <a href="/contacto#formulario" class="fl-btn fl-btn--solid">Agendar visita</a>
+          <a href={whatsapp(contacto.central.raw)} class="fl-btn fl-btn--ghost" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </section>
+    )}
+
+    <footer class="fl-footer">
+      <div class="fl-wrap">
+        <div class="fl-footer__grid">
+          <div>
+            <a href="/" class="fl-brand" aria-label="Residencial Flamingo, inicio">
+              <img src="/brand/brandbook/bird-light.svg" alt="" class="fl-brand__bird" />
+              <span class="fl-brand__text"><span class="fl-brand__name">FLAMINGO</span><span class="fl-brand__sub">RESIDENCIAL</span></span>
+            </a>
+            <p style="margin:18px 0 0;max-width:260px;line-height:1.7">Una nueva forma de proyectarse en Tarapoto.</p>
+          </div>
+          <div>
+            <h3>Sitio</h3>
+            <ul>{nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+          </div>
+          <div>
+            <h3>Contacto</h3>
+            <ul>
+              <li><a href={whatsapp(contacto.central.raw)} target="_blank" rel="noopener">{contacto.central.display}</a></li>
+              {contacto.asesores.map((a) => <li><a href={whatsapp(a.raw)} target="_blank" rel="noopener">Asesor · {a.display}</a></li>)}
+              <li><a href={contacto.instagram.url} target="_blank" rel="noopener">{contacto.instagram.handle}</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Ubicación</h3>
+            <ul><li><a href={contacto.mapa} target="_blank" rel="noopener">{contacto.direccion}</a></li></ul>
+          </div>
+        </div>
+        <div class="fl-footer__base">
+          <span>© 2026 Inmobiliaria Flamingo · Residencial Flamingo</span>
+          <span>Imágenes y recorridos referenciales.</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+</Layout>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Menú móvil
+  const drawer = document.querySelector<HTMLElement>('[data-drawer]');
+  const openBtn = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+  const closeBtn = document.querySelector<HTMLButtonElement>('[data-menu-close]');
+  const setMenu = (open: boolean) => {
+    drawer?.classList.toggle('is-open', open);
+    drawer?.setAttribute('aria-hidden', String(!open));
+    openBtn?.setAttribute('aria-expanded', String(open));
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+  openBtn?.addEventListener('click', () => setMenu(true));
+  closeBtn?.addEventListener('click', () => setMenu(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce) {
+    // Entrada del hero
+    gsap.from('[data-hero-in]', { y: 40, opacity: 0, duration: 1.2, ease: 'power3.out', stagger: 0.12, delay: 0.15 });
+
+    // Revelado al hacer scroll (elementos sueltos y grupos escalonados)
+    gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) => {
+      gsap.from(el, { y: 36, opacity: 0, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%' } });
+    });
+    gsap.utils.toArray<HTMLElement>('[data-stagger]').forEach((group) => {
+      gsap.from(group.children, { y: 40, opacity: 0, duration: 0.9, ease: 'power3.out', stagger: 0.09, scrollTrigger: { trigger: group, start: 'top 85%' } });
+    });
+
+    // Parallax de imágenes
+    gsap.utils.toArray<HTMLElement>('[data-parallax]').forEach((img) => {
+      gsap.fromTo(img, { yPercent: -6 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
+    });
+
+    // Imágenes que se descubren (clip-path)
+    gsap.utils.toArray<HTMLElement>('[data-unveil]').forEach((el) => {
+      gsap.from(el, { clipPath: 'inset(0 0 100% 0)', duration: 1.4, ease: 'power3.inOut', scrollTrigger: { trigger: el, start: 'top 82%' } });
+    });
+
+    // Contadores
+    gsap.utils.toArray<HTMLElement>('[data-count]').forEach((el) => {
+      const to = Number(el.dataset.count);
+      const obj = { v: 0 };
+      gsap.to(obj, { v: to, duration: 1.8, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 90%' },
+        onUpdate: () => { el.textContent = Math.round(obj.v).toLocaleString('es-PE'); } });
+    });
+
+    // Líneas que se dibujan
+    gsap.utils.toArray<HTMLElement>('[data-line]').forEach((el) => {
+      gsap.from(el, { scaleX: 0, transformOrigin: 'left center', duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%' } });
+    });
+  }
+
+  // Header: se vuelve sólido al bajar en páginas con portada
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  if (header && !header.classList.contains('fl-header--solid')) {
+    const bird = header.querySelector<HTMLImageElement>('.fl-brand__bird');
+    ScrollTrigger.create({
+      start: 120,
+      onToggle: (self) => {
+        header.classList.toggle('fl-header--fixed', self.isActive);
+        if (bird) bird.src = self.isActive ? '/brand/brandbook/bird-plum.svg' : '/brand/brandbook/bird-light.svg';
+      },
+    });
+  }
+</script>
+
+<style is:global>
+  .fl-header--fixed { position: fixed; background: rgba(242, 235, 225, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--rule); animation: fl-drop .4s ease; }
+  .fl-header--fixed .fl-nav { padding-block: 12px; }
+  .fl-header--fixed .fl-brand, .fl-header--fixed .fl-nav__links a { color: var(--plum); }
+  .fl-header--fixed .fl-btn--ghost { border-color: var(--plum); color: var(--plum); }
+  .fl-header--fixed .fl-menu-btn { border-color: var(--rule); color: var(--plum); }
+  @keyframes fl-drop { from { transform: translateY(-100%); } to { transform: none; } }
+</style>
