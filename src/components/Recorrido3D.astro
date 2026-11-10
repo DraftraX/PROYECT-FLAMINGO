@@ -1,5 +1,5 @@
 ---
-// Recorrido 3D de todo Residencial Flamingo, exportado desde Blender (public/proyecto3d).
+// Recorrido 3D de todo Residencial Flamingo, exportado desde Blender.
 import RecorridoVirtual from './RecorridoVirtual.astro';
 const paradas = [
   { id: 'aerea', label: 'Vista aérea' },
@@ -62,15 +62,30 @@ const paradas = [
 </div>
 
 <script>
+  import type { BufferGeometry, Material, Mesh, Object3D, Vector3 } from 'three';
+  import data from '../assets/proyecto3d/escena.json';
+  // Regenera sitio.glb a partir de una exportación nueva de Blender.
+  // npx @gltf-transform/cli@4.5.1 meshopt original.glb sitio.glb --level medium --quantize-position 16 --quantize-normal 12
+  import sitioUrl from '../assets/proyecto3d/sitio.glb?url';
+  import proto1Url from '../assets/proyecto3d/prototipo-1.glb?url';
+  import proto2Url from '../assets/proyecto3d/prototipo-2.glb?url';
+  import proto3Url from '../assets/proyecto3d/prototipo-3.glb?url';
+  import proto4Url from '../assets/proyecto3d/prototipo-4.glb?url';
+
   type V3 = [number, number, number];
-  type Escena = { casas: { p: number; pos: V3; rot: number; sx: number; sz: number }[]; poi: Record<string, { pos: V3; look: V3 }>; centro: V3 };
+  type Punto = { pos: V3; look: V3 };
+  type Escena = { casas: { p: number; pos: V3; rot: number; sx: number; sz: number }[]; poi: Record<string, Punto>; centro: V3 };
 
   async function init(root: HTMLElement) {
-    const THREE = await import('three');
-    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-    const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
-    const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
-    const { crearTexturas, texturizar, triplanar } = await import('../scripts/texturas');
+    const [THREE, { GLTFLoader }, { OrbitControls }, { RoomEnvironment }, { MeshoptDecoder }, { crearTexturas, texturizar, triplanar }] =
+      await Promise.all([
+        import('three'),
+        import('three/examples/jsm/loaders/GLTFLoader.js'),
+        import('three/examples/jsm/controls/OrbitControls.js'),
+        import('three/examples/jsm/environments/RoomEnvironment.js'),
+        import('three/examples/jsm/libs/meshopt_decoder.module.js'),
+        import('../scripts/texturas'),
+      ]);
 
     const stage = root.querySelector<HTMLElement>('[data-stage]')!;
     const loadingEl = root.querySelector<HTMLElement>('[data-loading]')!;
@@ -79,13 +94,16 @@ const paradas = [
     const pad = root.querySelector<HTMLElement>('[data-pad]')!;
     const modeBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-mode]')];
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    const compact = (memory !== undefined && memory <= 4) || navigator.hardwareConcurrency <= 4 || matchMedia('(pointer: coarse)').matches;
+    const renderer = new THREE.WebGLRenderer({ antialias: !compact, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, compact ? 1 : 1.5));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.domElement.className = 'r3d__canvas';
     stage.prepend(renderer.domElement);
 
@@ -107,13 +125,16 @@ const paradas = [
 
     // Luz cálida de atardecer + entorno para reflejos en vidrio y metal
     const pmrem = new THREE.PMREMGenerator(renderer);
-    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const room = new RoomEnvironment();
+    scene.environment = pmrem.fromScene(room, 0.04).texture;
+    room.dispose();
+    pmrem.dispose();
     scene.environmentIntensity = 0.45;
     scene.add(new THREE.HemisphereLight('#e4e6ef', '#4f5b2c', 0.85));
     const sun = new THREE.DirectionalLight('#ffd7b0', 2.8);
     sun.position.set(-140, 120, 110);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.setScalar(compact ? 1024 : 2048);
     Object.assign(sun.shadow.camera, { left: -170, right: 170, top: 170, bottom: -170, near: 10, far: 500 });
     sun.shadow.bias = -0.0006;
     scene.add(sun);
@@ -129,24 +150,25 @@ const paradas = [
 
     const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 3000);
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.07;
+    const orbitDamping = 0.07;
+    controls.enableDamping = true; controls.dampingFactor = orbitDamping;
     controls.maxPolarAngle = Math.PI * 0.47; controls.minDistance = 25; controls.maxDistance = 520;
 
     // Carga
-    const manager = new THREE.LoadingManager();
-    manager.onProgress = (_u, done, total) => { pctEl.textContent = `${Math.round((done / total) * 100)}%`; };
-    const loader = new GLTFLoader(manager);
-    const data: Escena = await (await fetch('/proyecto3d/escena.json')).json();
-    const load = (url: string) => new Promise<any>((res, rej) => loader.load(url, res, (e) => {
-      if (url.includes('sitio') && e.total) pctEl.textContent = `${Math.round((e.loaded / e.total) * 100)}%`;
-    }, rej));
+    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    const escena = data as Escena;
+    const [sitio, ...protos] = await Promise.all([
+      loader.loadAsync(sitioUrl, (event) => {
+        if (event.total) pctEl.textContent = Math.min(99, Math.round(100 * event.loaded / event.total)) + '%';
+      }),
+      ...[proto1Url, proto2Url, proto3Url, proto4Url].map((url) => loader.loadAsync(url)),
+    ]);
     const prep = (obj: any, cast: boolean) => obj.traverse((o: any) => {
       if (o.isMesh) {
         o.castShadow = cast; o.receiveShadow = true;
         const m = o.material; if (m && m.transparent) { m.depthWrite = false; o.castShadow = false; }
       }
     });
-    const [sitio, ...protos] = await Promise.all(['/proyecto3d/sitio.glb', 1, 2, 3, 4].map((u) => load(typeof u === 'number' ? `/proyecto3d/prototipo-${u}.glb` : u)));
     prep(sitio.scene, true); scene.add(sitio.scene);
     const texturizados = texturizar(sitio.scene, tx);
     protos.forEach((g) => { prep(g.scene, true); texturizar(g.scene, tx, texturizados); });
@@ -161,10 +183,11 @@ const paradas = [
     const anchoProto = [8, 8, 10, 10];
     const markerMat = new THREE.MeshBasicMaterial({ color: '#d7dc8a', transparent: true, opacity: 0.85, depthWrite: false });
     const markerGeo = new THREE.RingGeometry(0.42, 0.6, 40).rotateX(-Math.PI / 2);
-    type Puerta = { p: number; lote: number; pos: any; casa: any };
+    type Puerta = { p: number; lote: number; pos: Vector3; casa: Object3D };
     const puertas: Puerta[] = [];
-    const casas: any[] = [];
-    data.casas.forEach((c, i) => {
+    const casas: Object3D[] = [];
+    const batches = new Map<BufferGeometry, Map<Material, Mesh[]>>();
+    escena.casas.forEach((c, i) => {
       const h = protos[c.p - 1].scene.clone();
       h.position.set(...c.pos);
       h.rotation.y = c.rot;
@@ -176,9 +199,34 @@ const paradas = [
       ring.position.set(doorX(anchoProto[c.p - 1]), 0.14, 0.9);
       h.add(ring);
       h.updateMatrixWorld(true);
+      h.traverse((object) => {
+        if (!(object instanceof THREE.Mesh) || !object.visible || object instanceof THREE.SkinnedMesh || object.morphTargetInfluences) return;
+        if (Array.isArray(object.material) || object.material.transparent || object.matrixWorld.determinant() <= 0) return;
+        const { geometry, material } = object;
+        let byMaterial = batches.get(geometry);
+        if (!byMaterial) batches.set(geometry, byMaterial = new Map());
+        let meshes = byMaterial.get(material);
+        if (!meshes) byMaterial.set(material, meshes = []);
+        meshes.push(object);
+      });
       puertas.push({ p: c.p, lote: i + 1, pos: ring.getWorldPosition(new THREE.Vector3()), casa: h });
     });
-    loadingEl.hidden = true;
+    for (const [geometry, byMaterial] of batches) {
+      for (const [material, meshes] of byMaterial) {
+        if (meshes.length < 2) continue;
+        const batch = new THREE.InstancedMesh(geometry, material, meshes.length);
+        batch.castShadow = meshes[0].castShadow;
+        batch.receiveShadow = meshes[0].receiveShadow;
+        meshes.forEach((mesh, i) => {
+          batch.setMatrixAt(i, mesh.matrixWorld);
+          // El raycaster sigue usando las casas originales para identificar el lote.
+          mesh.visible = false;
+        });
+        batch.computeBoundingSphere();
+        scene.add(batch);
+      }
+    }
+    renderer.shadowMap.needsUpdate = true;
 
     // ---- Entrar a la casa
     const enterBtn = root.querySelector<HTMLButtonElement>('[data-enter]')!;
@@ -207,7 +255,7 @@ const paradas = [
     };
     enterBtn.addEventListener('click', entrar);
     dialog.querySelector('[data-close]')!.addEventListener('click', () => dialog.close());
-    dialog.addEventListener('close', () => { enCasa = false; stage.focus(); });
+    dialog.addEventListener('close', () => { enCasa = false; stage.focus(); requestRender(); });
     stage.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'e') entrar(); });
 
     // Clic sobre una casa: la elige como destino (en cualquier modo)
@@ -221,7 +269,8 @@ const paradas = [
       ray.setFromCamera(ndc, camera);
       const hit = ray.intersectObjects(casas, true)[0];
       if (!hit) return;
-      let o: any = hit.object; while (o && !o.userData.p) o = o.parent;
+      let o: Object3D | null = hit.object;
+      while (o && !o.userData.p) o = o.parent;
       const pt = puertas.find((d) => d.casa === o);
       if (pt) ofrecer(pt, 'clic');
     });
@@ -231,8 +280,8 @@ const paradas = [
     let yaw = 0, pitch = 0;
     const eye = 1.75;
     const keys = new Set<string>();
-    const centro = new THREE.Vector3(...data.centro);
-    let tween: { t: number; from: any; to: any; lf: any; lt: any } | null = null;
+    const centro = new THREE.Vector3(...escena.centro);
+    let tween: { t: number; from: Vector3; to: Vector3; lf: Vector3; lt: Vector3 } | null = null;
 
     function setMode(m: 'orbit' | 'walk') {
       mode = m;
@@ -247,16 +296,18 @@ const paradas = [
       } else {
         controls.target.copy(centro);
       }
+      requestRender();
     }
 
     function go(id: string) {
-      const p = data.poi[id]; if (!p) return;
+      const p = escena.poi[id]; if (!p) return;
       const to = new THREE.Vector3(...p.pos), lt = new THREE.Vector3(...p.look);
       const lf = new THREE.Vector3(); camera.getWorldDirection(lf); lf.multiplyScalar(30).add(camera.position);
       if (mode === 'orbit') lf.copy(controls.target);
       tween = { t: 0, from: camera.position.clone(), to, lf, lt };
       if (id !== 'aerea' && mode !== 'walk') { mode = 'walk'; modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === 'walk'))); controls.enabled = false; pad.hidden = false; hint.textContent = 'Arrastra para mirar · W A S D o flechas para caminar'; }
-      if (id === 'aerea') { mode = 'orbit'; modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === 'orbit'))); pad.hidden = true; }
+      if (id === 'aerea') setMode('orbit');
+      requestRender();
     }
 
     modeBtns.forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode as 'orbit' | 'walk')));
@@ -270,12 +321,14 @@ const paradas = [
       if (!drag || mode !== 'walk' || tween) return;
       yaw -= (e.clientX - lx) * 0.0035; pitch = THREE.MathUtils.clamp(pitch - (e.clientY - ly) * 0.0035, -1.2, 1.2);
       lx = e.clientX; ly = e.clientY;
+      requestRender();
     });
     stage.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
         keys.add(k); if (k.startsWith('arrow')) e.preventDefault();
         if (mode !== 'walk' && k !== 'shift') setMode('walk');
+        requestRender();
       }
     });
     stage.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
@@ -283,7 +336,7 @@ const paradas = [
     // Controles táctiles
     pad.querySelectorAll<HTMLButtonElement>('[data-move]').forEach((b) => {
       const k = { f: 'w', b: 's', l: 'a', r: 'd' }[b.dataset.move as 'f' | 'b' | 'l' | 'r'];
-      const on = (e: Event) => { e.preventDefault(); keys.add(k); };
+      const on = (e: Event) => { e.preventDefault(); keys.add(k); requestRender(); };
       const off = () => keys.delete(k);
       b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
     });
@@ -294,33 +347,61 @@ const paradas = [
 
     function resize() {
       const w = stage.clientWidth, h = stage.clientHeight;
+      if (!w || !h) return;
       renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+      requestRender();
     }
+
+    let visible = false;
+    let frame = 0;
+    let lastFrame = 0;
+    function requestRender() {
+      if (!frame && visible && !document.hidden && !enCasa) frame = requestAnimationFrame(render);
+    }
+
+    camera.position.set(...escena.poi.aerea.pos);
+    controls.target.copy(centro);
+    controls.update();
+    controls.addEventListener('change', requestRender);
     new ResizeObserver(resize).observe(stage); resize();
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      requestRender();
+    }).observe(stage);
+    renderer.domElement.addEventListener('webglcontextrestored', () => {
+      renderer.shadowMap.needsUpdate = true;
+      requestRender();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) keys.clear();
+      lastFrame = 0;
+      requestRender();
+    });
 
-    let visible = true;
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
-
-    go('aerea'); tween!.t = 1; camera.position.copy(tween!.to); controls.target.copy(centro); tween = null;
-
-    const clock = new THREE.Clock();
-    const fwd = new THREE.Vector3(), side = new THREE.Vector3(), look = new THREE.Vector3();
-    renderer.setAnimationLoop(() => {
-      const dt = Math.min(clock.getDelta(), 0.05);
-      if (!visible || enCasa) return;
-      markerMat.opacity = 0.55 + Math.sin(clock.elapsedTime * 3) * 0.3;
+    const fwd = new THREE.Vector3(), side = new THREE.Vector3(), look = new THREE.Vector3(), off = new THREE.Vector3();
+    function render(now: number) {
+      frame = 0;
+      if (!visible || document.hidden || enCasa) { lastFrame = 0; return; }
+      const elapsed = lastFrame ? (now - lastFrame) / 1000 : 1 / 60;
+      lastFrame = now;
       if (tween) {
-        tween.t = Math.min(1, tween.t + dt / 1.6);
+        tween.t = Math.min(1, tween.t + elapsed / 1.6);
         const k = tween.t < 0.5 ? 4 * tween.t ** 3 : 1 - (-2 * tween.t + 2) ** 3 / 2;
         camera.position.lerpVectors(tween.from, tween.to, k);
         look.lerpVectors(tween.lf, tween.lt, k);
         camera.lookAt(look);
         if (tween.t >= 1) {
-          if (mode === 'orbit') { controls.target.copy(centro); }
+          if (mode === 'orbit') {
+            controls.target.copy(centro);
+            controls.enabled = true;
+            controls.update();
+          }
           else { const d = new THREE.Vector3().subVectors(tween.lt, tween.to); yaw = Math.atan2(-d.x, -d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); }
           tween = null;
         }
+        requestRender();
       } else if (mode === 'walk') {
+        const dt = Math.min(elapsed, 0.05);
         const speed = (keys.has('shift') ? 9 : 4.2) * dt;
         fwd.set(-Math.sin(yaw), 0, -Math.cos(yaw)); side.set(-fwd.z, 0, fwd.x);
         if (keys.has('w') || keys.has('arrowup')) camera.position.addScaledVector(fwd, speed);
@@ -329,8 +410,9 @@ const paradas = [
         if (keys.has('arrowright')) yaw -= 1.6 * dt;
         if (keys.has('a')) camera.position.addScaledVector(side, -speed);
         if (keys.has('d')) camera.position.addScaledVector(side, speed);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, eye, 0.2);
-        const off = camera.position.clone().sub(centro); off.y = 0;
+        const settling = Math.abs(camera.position.y - eye) > 0.005;
+        camera.position.y = settling ? THREE.MathUtils.lerp(camera.position.y, eye, 0.2) : eye;
+        off.copy(camera.position).sub(centro); off.y = 0;
         if (off.length() > 260) { off.setLength(260); camera.position.x = centro.x + off.x; camera.position.z = centro.z + off.z; }
         look.set(Math.sin(yaw + Math.PI) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw + Math.PI) * Math.cos(pitch)).add(camera.position);
         camera.lookAt(look);
@@ -343,11 +425,16 @@ const paradas = [
         const moving = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown'].some((k) => keys.has(k));
         if (best && best !== candidata) ofrecer(best, 'cerca');
         else if (!best && candidata && (fuente === 'cerca' || moving)) ofrecer(null);
+        if (moving || settling || keys.has('arrowleft') || keys.has('arrowright')) requestRender();
       } else {
+        controls.dampingFactor = 1 - (1 - orbitDamping) ** (elapsed * 60);
         controls.update();
+        controls.dampingFactor = orbitDamping;
       }
       renderer.render(scene, camera);
-    });
+      loadingEl.hidden = true;
+      if (!frame) lastFrame = 0;
+    }
   }
 
   document.querySelectorAll<HTMLElement>('[data-r3d]').forEach((root) => {

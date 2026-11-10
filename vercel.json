@@ -1,4 +1,15 @@
 {
+  "headers": [
+    {
+      "source": "/_astro/:name(sitio|prototipo-[1-4]).:hash([A-Za-z0-9_-]+).glb",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
   "redirects": [
     {
       "source": "/showroom",

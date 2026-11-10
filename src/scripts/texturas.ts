@@ -92,7 +92,15 @@ export function triplanar(mat: T.MeshStandardMaterial, tex: T.Texture, scale: nu
     sh.uniforms.tScale = { value: scale };
     sh.vertexShader = 'varying vec3 vWP;\nvarying vec3 vWN;\n' + sh.vertexShader.replace(
       '#include <worldpos_vertex>',
-      '#include <worldpos_vertex>\n  vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;\n  vWN = normalize(mat3(modelMatrix) * objectNormal);',
+      `#include <worldpos_vertex>
+       vec4 triPosition = vec4(transformed, 1.0);
+       vec3 triNormal = objectNormal;
+       #ifdef USE_INSTANCING
+         triPosition = instanceMatrix * triPosition;
+         triNormal = mat3(instanceMatrix) * triNormal;
+       #endif
+       vWP = (modelMatrix * triPosition).xyz;
+       vWN = normalize(mat3(modelMatrix) * triNormal);`,
     );
     sh.fragmentShader = 'uniform sampler2D tMap;\nuniform float tScale;\nvarying vec3 vWP;\nvarying vec3 vWN;\n' + sh.fragmentShader.replace(
       '#include <map_fragment>',
