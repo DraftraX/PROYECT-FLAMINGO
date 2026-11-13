@@ -2,11 +2,12 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import Icono from '../components/Icono.astro';
 import MasterPlan from '../components/MasterPlan.astro';
+import FormularioContacto from '../components/FormularioContacto.astro';
+import Recorrido3D from '../components/Recorrido3D.astro';
 import { contacto, whatsapp } from '../config/site';
-import { atributosLanding, googleMapsUrl } from '../config/landing';
+import { agendaVisita, atributosLanding, googleMapsUrl } from '../config/landing';
 import '../styles/landing.css';
 
-const visita = '/contacto#formulario';
 const valores = [
   { titulo: 'Integridad', texto: 'Actuamos con principios y coherencia en cada etapa del proyecto, manteniendo una conducta responsable y respetuosa hacia nuestros clientes. Buscamos que cada decisión refleje el compromiso de hacer las cosas correctamente.' },
   { titulo: 'Confianza', texto: 'Construimos relaciones basadas en la seguridad y tranquilidad de nuestros clientes, ofreciendo una propuesta inmobiliaria con condiciones claras que les permita tomar decisiones de inversión con mayor seguridad.' },
@@ -31,7 +32,7 @@ const conceptos = [
         <p>Un proyecto residencial con respaldo urbanístico y registral, planificación integral y vistas a la Cordillera Escalera.</p>
         <div class="landing-hero__actions">
           <a href="#master-plan" class="fl-btn fl-btn--solid">Explora el Master Plan <span aria-hidden="true">↓</span></a>
-          <a href={visita} class="fl-btn fl-btn--ghost">Agenda tu visita</a>
+          <a href={agendaVisita} class="fl-btn fl-btn--ghost">Agenda tu visita</a>
         </div>
       </div>
       <span class="landing-hero__credit">Render referencial</span>
@@ -170,6 +171,28 @@ const conceptos = [
         </div>
       </div>
 
+      <div id="recorrido" class="landing-tour" tabindex="-1" aria-labelledby="recorrido-titulo">
+        <div class="fl-wrap landing-band">
+          <div class="landing-copy">
+            <h3 class="fl-h2" id="recorrido-titulo">Tour 360°</h3>
+            <p>Conoce cómo se proyectan el pórtico, las calles y el parque central de Flamingo Residencial.</p>
+          </div>
+          <div class="landing-tour__media">
+            <div>
+              <h4 class="fl-h3">Video del proyecto</h4>
+              <video controls playsinline preload="none" poster="/landing/vista-aerea.webp" width="1280" height="720" aria-label="Video del proyecto Flamingo Residencial">
+                <source src="/videos/flamingo-masterplan.mp4" type="video/mp4" />
+              </video>
+            </div>
+            <div>
+              <h4 class="fl-h3">Recorrido 3D exterior</h4>
+              <Recorrido3D exteriorOnly />
+            </div>
+          </div>
+          <p class="landing-tour__caption">Video y recorrido referenciales.</p>
+        </div>
+      </div>
+
       <div class="landing-location landing-location--experience landing-plum">
         <figure class="landing-photo">
           <img src="/landing/parque-central.webp" width="1671" height="941" loading="lazy" decoding="async" alt="Parque central proyectado con palmeras, jardines y espacios recreativos" />
@@ -178,8 +201,16 @@ const conceptos = [
         <div class="landing-copy landing-pattern">
           <h3 class="fl-h2">Un entorno pensado para vivir</h3>
           <p>Un parque central, jardines, espacios recreativos y una propuesta arquitectónica que integra naturaleza, orden y armonía residencial.</p>
-          <a href={visita} class="fl-btn fl-btn--solid">Agenda tu visita</a>
+          <a href={agendaVisita} class="fl-btn fl-btn--solid">Agenda tu visita</a>
         </div>
+      </div>
+
+      <div id="agenda-visita" class="fl-wrap landing-band landing-split" tabindex="-1" aria-labelledby="agenda-titulo">
+        <div class="landing-copy">
+          <h3 class="fl-h2" id="agenda-titulo">Agenda tu visita</h3>
+          <p>Elige un asesor y envíale tu solicitud por WhatsApp para coordinar la visita al residencial.</p>
+        </div>
+        <FormularioContacto visita />
       </div>
     </section>
   </div>

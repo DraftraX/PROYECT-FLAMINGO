@@ -3,7 +3,10 @@ export const landingNav = [
   { href: '/#nosotros', label: 'Nosotros' },
   { href: '/#ubicacion', label: 'Ubicación' },
   { href: '/#proyecto', label: 'El proyecto' },
+  { href: '/#recorrido', label: 'Tour 360°' },
 ];
+
+export const agendaVisita = '#agenda-visita';
 
 export const atributosLanding = [
   { icon: 'pistas-y-veredas', titulo: 'Infraestructura vial', descripcion: 'Pistas, bermas, jardineras y veredas integradas en un diseño urbano planificado.' },

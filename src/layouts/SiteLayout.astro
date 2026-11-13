@@ -2,7 +2,7 @@
 import Layout from './Layout.astro';
 import '../styles/site.css';
 import { contacto, nav, whatsapp } from '../config/site';
-import { googleMapsUrl, landingNav } from '../config/landing';
+import { agendaVisita, googleMapsUrl, landingNav } from '../config/landing';
 
 interface Props {
   title: string;
@@ -43,7 +43,7 @@ const direccionHref = landing
           {links.map((n) => <a href={navHref(n.href)} aria-current={path === n.href ? 'page' : undefined}>{n.label}</a>)}
         </div>
         <div class="fl-nav__cta">
-          <a href="/contacto#formulario" class="fl-btn fl-btn--ghost">Agenda tu visita</a>
+          <a href={landing ? agendaVisita : '/contacto#formulario'} class="fl-btn fl-btn--ghost">Agenda tu visita</a>
           <button type="button" class="fl-menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="fl-menu" data-menu-open>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
           </button>
