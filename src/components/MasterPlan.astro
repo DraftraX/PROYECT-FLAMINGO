@@ -1,0 +1,178 @@
+---
+import { contacto, whatsapp } from '../config/site';
+import { estadosLote, fichasComerciales } from '../config/landing';
+import { OFFICIAL_BLOCKS, PLAN_HEIGHT, PLAN_WIDTH } from '../data/officialPlan';
+
+const areaFormat = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 2 });
+const lotes = OFFICIAL_BLOCKS.flatMap((block) => block.lots.map((lot) => {
+  const ficha = fichasComerciales[lot.id];
+  return {
+    ...lot,
+    manzana: block.letter,
+    estado: ficha?.estado ?? 'por-confirmar',
+    area: lot.areaSqm === undefined ? 'Por confirmar' : `${areaFormat.format(lot.areaSqm)} m²`,
+    precio: ficha?.precio === undefined ? 'Consultar' : new Intl.NumberFormat('es-PE', {
+      style: 'currency', currency: ficha.moneda ?? 'PEN',
+    }).format(ficha.precio),
+    panoramaUrl: ficha?.panoramaUrl,
+    consulta: whatsapp(contacto.central.raw, `Hola, quisiera conocer el precio y la disponibilidad del lote ${lot.number} de la manzana ${block.letter} de Flamingo Residencial.`),
+  };
+}));
+const estadosVisibles = Object.entries(estadosLote).filter(([estado]) => lotes.some((lot) => lot.estado === estado));
+const datosFicha = lotes.map(({ path, ...lot }) => lot);
+---
+
+<flamingo-master-plan class="mp" data-lots={JSON.stringify(datosFicha)} data-width={PLAN_WIDTH} data-height={PLAN_HEIGHT}>
+  <div>
+    <div class="mp__toolbar">
+      <div class="mp__legend" aria-label="Leyenda de disponibilidad">
+        {estadosVisibles.map(([estado, label]) => <span data-status={estado}>{label}</span>)}
+      </div>
+      <div class="mp__zoom" aria-label="Acercamiento">
+        <button type="button" data-zoom="-1" aria-label="Alejar" disabled>−</button>
+        <button type="button" data-zoom="0" aria-label="Restablecer vista">100%</button>
+        <button type="button" data-zoom="1" aria-label="Acercar">+</button>
+      </div>
+    </div>
+    <div class="mp__viewport" tabindex="0" role="region" aria-label="Plano de lotes. Puedes desplazar el plano al acercarlo." data-viewport>
+      <svg class="mp__map" viewBox={`0 0 ${PLAN_WIDTH} ${PLAN_HEIGHT}`} width={PLAN_WIDTH} height={PLAN_HEIGHT} aria-hidden="true">
+        <image href="/urbanization/flamingo-lots-plan.webp" width={PLAN_WIDTH} height={PLAN_HEIGHT} />
+        {lotes.map((lot) => <path d={lot.path} data-lot={lot.id} data-status={lot.estado} />)}
+      </svg>
+    </div>
+  </div>
+  <div class="mp__sheet">
+    <label for="flamingo-lot">Propiedad</label>
+    <select id="flamingo-lot" data-lot-select>
+      <option value="">Selecciona un lote</option>
+      {OFFICIAL_BLOCKS.map((block) => (
+        <optgroup label={`Manzana ${block.letter}`}>
+          {block.lots.map((lot) => <option value={lot.id}>{`Manzana ${block.letter} · Lote ${lot.number}`}</option>)}
+        </optgroup>
+      ))}
+    </select>
+    <p class="mp__hint" data-empty>Selecciona un lote en el plano o en la lista.</p>
+    <div data-ficha hidden>
+      <div aria-live="polite" aria-atomic="true">
+        <h3 class="fl-h3" data-title></h3>
+        <dl>
+          <div><dt>Área</dt><dd data-area></dd></div>
+          <div><dt>Disponibilidad</dt><dd data-estado></dd></div>
+          <div><dt>Precio de venta</dt><dd data-precio></dd></div>
+        </dl>
+      </div>
+      <div class="mp__actions">
+        <a class="fl-btn fl-btn--plum" target="_blank" rel="noopener" data-whatsapp>Consultar por WhatsApp</a>
+        <a class="fl-btn fl-btn--line" target="_blank" rel="noopener" data-panorama hidden>Ver en 360°</a>
+      </div>
+    </div>
+    <noscript><p>Activa JavaScript para seleccionar lotes en el plano.</p></noscript>
+  </div>
+</flamingo-master-plan>
+
+<script>
+  import { estadosLote } from '../config/landing';
+
+  class FlamingoMasterPlan extends HTMLElement {
+    connectedCallback() {
+      const lotes = JSON.parse(this.dataset.lots!) as Array<{
+        id: string; manzana: string; number: string; area: string; precio: string;
+        estado: keyof typeof estadosLote; consulta: string; panoramaUrl?: string;
+      }>;
+      const sheet = this.querySelector<HTMLElement>('[data-ficha]')!;
+      const empty = this.querySelector<HTMLElement>('[data-empty]')!;
+      const select = this.querySelector<HTMLSelectElement>('[data-lot-select]')!;
+      const map = this.querySelector<SVGSVGElement>('.mp__map')!;
+      const viewport = this.querySelector<HTMLElement>('[data-viewport]')!;
+      const zoomLevels = [1, 1.5, 2, 3, 4];
+      let zoom = 0;
+      const reset = this.querySelector<HTMLButtonElement>('[data-zoom="0"]')!;
+      const zoomIn = this.querySelector<HTMLButtonElement>('[data-zoom="1"]')!;
+      const zoomOut = this.querySelector<HTMLButtonElement>('[data-zoom="-1"]')!;
+
+      const setZoom = (next: number) => {
+        const bounds = viewport.getBoundingClientRect();
+        const before = map.getBoundingClientRect();
+        const centerX = (bounds.left + viewport.clientWidth / 2 - before.left) / before.width;
+        const centerY = (bounds.top + viewport.clientHeight / 2 - before.top) / before.height;
+        zoom = Math.min(Math.max(next, 0), zoomLevels.length - 1);
+        const fit = Math.min(viewport.clientWidth, viewport.clientHeight * Number(this.dataset.width) / Number(this.dataset.height));
+        map.style.width = `${fit * zoomLevels[zoom]}px`;
+        const after = map.getBoundingClientRect();
+        viewport.scrollTo({
+          left: viewport.scrollLeft + after.left + centerX * after.width - bounds.left - viewport.clientWidth / 2,
+          top: viewport.scrollTop + after.top + centerY * after.height - bounds.top - viewport.clientHeight / 2,
+        });
+        reset.textContent = `${zoomLevels[zoom] * 100}%`;
+        zoomIn.disabled = zoom === zoomLevels.length - 1;
+        zoomOut.disabled = zoom === 0;
+      };
+
+      const resize = new ResizeObserver(() => setZoom(zoom));
+      resize.observe(viewport);
+      zoomIn.addEventListener('click', () => setZoom(zoom + 1));
+      zoomOut.addEventListener('click', () => setZoom(zoom - 1));
+      reset.addEventListener('click', () => setZoom(0));
+
+      const show = (id: string) => {
+        const lot = lotes.find((item) => item.id === id);
+        map.querySelector('.is-selected')?.classList.remove('is-selected');
+        sheet.hidden = !lot;
+        empty.hidden = Boolean(lot);
+        if (!lot) return;
+        select.value = lot.id;
+        map.querySelector(`[data-lot="${lot.id}"]`)?.classList.add('is-selected');
+        sheet.querySelector('[data-title]')!.textContent = `Manzana ${lot.manzana} · Lote ${lot.number}`;
+        sheet.querySelector('[data-area]')!.textContent = lot.area;
+        sheet.querySelector('[data-estado]')!.textContent = estadosLote[lot.estado];
+        sheet.querySelector('[data-precio]')!.textContent = lot.precio;
+        sheet.querySelector<HTMLAnchorElement>('[data-whatsapp]')!.href = lot.consulta;
+        const panorama = sheet.querySelector<HTMLAnchorElement>('[data-panorama]')!;
+        panorama.hidden = !lot.panoramaUrl;
+        if (lot.panoramaUrl) panorama.href = lot.panoramaUrl;
+        else panorama.removeAttribute('href');
+      };
+      select.addEventListener('change', () => show(select.value));
+      map.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element)) return;
+        const id = event.target.getAttribute('data-lot');
+        if (id) show(id);
+      });
+    }
+  }
+  customElements.define('flamingo-master-plan', FlamingoMasterPlan);
+</script>
+
+<style>
+  .mp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .39fr); gap: clamp(16px, 3vw, 40px); align-items: start; margin-top: 26px; }
+  .mp [hidden] { display: none; }
+  .mp__toolbar, .mp__legend, .mp__zoom { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .mp__toolbar { justify-content: space-between; margin-bottom: 12px; }
+  .mp__legend { font-size: 14px; }
+  .mp__legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .mp__legend span::before { content: ''; width: 12px; height: 12px; border: 1px solid var(--plum); background: var(--status); }
+  [data-status="por-confirmar"] { --status: #d6c9d1; }
+  [data-status="disponible"] { --status: #aebc77; }
+  [data-status="reservado"] { --status: #e7b963; }
+  [data-status="vendido"] { --status: #ca8d9a; }
+  .mp__zoom button { min-height: 42px; min-width: 42px; padding-inline: 8px; border: 1px solid var(--rule); background: #faf7f2; color: var(--plum); font-weight: 700; cursor: pointer; }
+  .mp__zoom button:disabled { opacity: .48; cursor: default; }
+  .mp__viewport { display: block; overflow: auto; height: clamp(430px, 74svh, 700px); background: #faf7f2; border: 1px solid var(--rule); }
+  .mp__map { width: min(100%, 520px); height: auto; display: block; margin-inline: auto; max-width: none; }
+  .mp__map path { fill: var(--status); fill-opacity: .35; stroke: var(--plum); stroke-opacity: .55; stroke-width: 1px; vector-effect: non-scaling-stroke; cursor: pointer; }
+  .mp__map path:hover, .mp__map path.is-selected { fill: var(--plum); fill-opacity: .45; stroke-opacity: 1; stroke-width: 2px; }
+  .mp__sheet { background: #faf7f2; padding: clamp(18px, 3vw, 30px); }
+  .mp__sheet label { display: block; color: var(--plum); font-weight: 700; margin-bottom: 8px; }
+  .mp__sheet select { width: 100%; padding: 11px 28px 11px 10px; border: 1px solid var(--rule); background: var(--beige); }
+  .mp__hint { margin-top: 16px; }
+  .mp__sheet h3 { margin-top: 20px; }
+  .mp__sheet dl { margin-block: 14px 20px; }
+  .mp__sheet dl div { display: flex; flex-wrap: wrap; gap: 3px 10px; justify-content: space-between; border-bottom: 1px solid var(--rule); padding-block: 8px; }
+  .mp__sheet dd { color: var(--plum); font-weight: 700; }
+  .mp__actions { display: flex; gap: 8px; flex-direction: column; }
+  .mp__actions a { padding-inline: 12px; letter-spacing: .04em; text-align: center; }
+  @media (max-width: 720px) {
+    .mp { grid-template-columns: minmax(0, 1fr); }
+    .mp__viewport { height: clamp(340px, 58svh, 510px); }
+  }
+</style>

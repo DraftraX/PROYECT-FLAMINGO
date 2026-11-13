@@ -2,6 +2,7 @@
 import Layout from './Layout.astro';
 import '../styles/site.css';
 import { contacto, nav, whatsapp } from '../config/site';
+import { googleMapsUrl, landingNav } from '../config/landing';
 
 interface Props {
   title: string;
@@ -10,49 +11,68 @@ interface Props {
   overlay?: boolean;
   /** Mostrar el bloque final de llamada a la acción antes del footer. */
   prefooter?: boolean;
+  landing?: boolean;
 }
-const { title, description, overlay = true, prefooter = true } = Astro.props;
+const { title, description, overlay = true, prefooter = true, landing = false } = Astro.props;
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const links = landing ? landingNav : nav;
+const navHref = (href: string) => landing ? href.slice(1) : href;
+const direccionHref = landing
+  ? googleMapsUrl || whatsapp(contacto.central.raw, 'Hola, ¿podrían enviarme la ubicación de Flamingo Residencial?')
+  : contacto.mapa;
 ---
 
 <Layout title={title} description={description} lockViewport={false}>
-  <div class="fl-page">
-    <header class:list={['fl-header', { 'fl-header--solid': !overlay }]} data-header>
+  <div class:list={['fl-page', { 'fl-page--landing': landing }]}>
+    <header class:list={['fl-header', { 'fl-header--solid': !overlay || landing }]} data-header>
       <nav class="fl-nav fl-wrap" aria-label="Principal">
         <a href="/" class="fl-brand" aria-label="Residencial Flamingo, inicio">
-          <img src={overlay ? '/brand/brandbook/bird-light.svg' : '/brand/brandbook/bird-plum.svg'} alt="" class="fl-brand__bird" />
-          <span class="fl-brand__text">
-            <span class="fl-brand__name">FLAMINGO</span>
-            <span class="fl-brand__sub">RESIDENCIAL</span>
-          </span>
+          {landing ? (
+            <img src="/landing/logo-flamingo.png" alt="" class="fl-brand__official" width="520" height="347" />
+          ) : (
+            <>
+              <img src={overlay ? '/brand/brandbook/bird-light.svg' : '/brand/brandbook/bird-plum.svg'} alt="" class="fl-brand__bird" />
+              <span class="fl-brand__text">
+                <span class="fl-brand__name">FLAMINGO</span>
+                <span class="fl-brand__sub">RESIDENCIAL</span>
+              </span>
+            </>
+          )}
         </a>
         <div class="fl-nav__links">
-          {nav.map((n) => <a href={n.href} aria-current={path === n.href ? 'page' : undefined}>{n.label}</a>)}
+          {links.map((n) => <a href={navHref(n.href)} aria-current={path === n.href ? 'page' : undefined}>{n.label}</a>)}
         </div>
         <div class="fl-nav__cta">
           <a href="/contacto#formulario" class="fl-btn fl-btn--ghost">Agenda tu visita</a>
-          <button type="button" class="fl-menu-btn" aria-label="Abrir menú" aria-expanded="false" data-menu-open>
+          <button type="button" class="fl-menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="fl-menu" data-menu-open>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
           </button>
         </div>
       </nav>
     </header>
 
-    <div class="fl-drawer" data-drawer aria-hidden="true">
+    <div class="fl-drawer" id="fl-menu" data-drawer aria-hidden="true" inert>
       <div class="fl-drawer__top">
-        <span class="fl-brand"><img src="/brand/brandbook/bird-light.svg" alt="" class="fl-brand__bird" /><span class="fl-brand__text"><span class="fl-brand__name">FLAMINGO</span><span class="fl-brand__sub">RESIDENCIAL</span></span></span>
+        {landing ? <img src="/landing/logo-flamingo-light.png" alt="Flamingo Residencial" class="fl-brand__official" width="520" height="347" /> :
+          <span class="fl-brand"><img src="/brand/brandbook/bird-light.svg" alt="" class="fl-brand__bird" /><span class="fl-brand__text"><span class="fl-brand__name">FLAMINGO</span><span class="fl-brand__sub">RESIDENCIAL</span></span></span>}
         <button type="button" class="fl-menu-btn" style="display:inline-flex" aria-label="Cerrar menú" data-menu-close>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
         </button>
       </div>
-      <a href="/" class="fl-drawer__link">Inicio</a>
-      {nav.map((n) => <a href={n.href} class="fl-drawer__link">{n.label}</a>)}
+      {!landing && <a href="/" class="fl-drawer__link">Inicio</a>}
+      {links.map((n) => <a href={navHref(n.href)} class="fl-drawer__link">{n.label}</a>)}
       <a href={whatsapp(contacto.central.raw)} class="fl-btn fl-btn--solid" style="margin-top:28px" target="_blank" rel="noopener">WhatsApp {contacto.central.display}</a>
     </div>
 
     <main>
       <slot />
     </main>
+    {landing && <a class="fl-floating-whatsapp" href={whatsapp(contacto.central.raw)} target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+      <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.65" aria-hidden="true">
+        <path d="M20.6 11.8a8.6 8.6 0 0 1-12.8 7.5L3 20.6l1.3-4.5a8.6 8.6 0 1 1 16.3-4.3Z" stroke-linejoin="round" />
+        <path d="M8.4 7.9c-.9.6-.8 1.8-.2 2.9 1 1.9 2.6 3.3 4.5 4 .9.3 2.1.3 2.6-.7l-2.3-1.3-.9.9c-1.4-.6-2.3-1.5-2.9-2.8l.7-.8-.9-2.2h-.6Z" fill="currentColor" stroke="none" />
+      </svg>
+    </a>}
 
     {prefooter && (
       <section class="fl-prefooter fl-trama-ciruela" aria-labelledby="prefooter-t">
@@ -71,14 +91,16 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
         <div class="fl-footer__grid">
           <div>
             <a href="/" class="fl-brand" aria-label="Residencial Flamingo, inicio">
-              <img src="/brand/brandbook/bird-light.svg" alt="" class="fl-brand__bird" />
-              <span class="fl-brand__text"><span class="fl-brand__name">FLAMINGO</span><span class="fl-brand__sub">RESIDENCIAL</span></span>
+              {landing ? <img src="/landing/logo-flamingo-light.png" alt="" class="fl-brand__official" width="520" height="347" loading="lazy" /> : <>
+                <img src="/brand/brandbook/bird-light.svg" alt="" class="fl-brand__bird" />
+                <span class="fl-brand__text"><span class="fl-brand__name">FLAMINGO</span><span class="fl-brand__sub">RESIDENCIAL</span></span>
+              </>}
             </a>
             <p style="margin:18px 0 0;max-width:260px;line-height:1.7">Una nueva forma de proyectarse en Tarapoto.</p>
           </div>
           <div>
             <h3>Sitio</h3>
-            <ul>{nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+            <ul>{links.map((n) => <li><a href={navHref(n.href)}>{n.label}</a></li>)}</ul>
           </div>
           <div>
             <h3>Contacto</h3>
@@ -90,7 +112,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
           </div>
           <div>
             <h3>Ubicación</h3>
-            <ul><li><a href={contacto.mapa} target="_blank" rel="noopener">{contacto.direccion}</a></li></ul>
+            <ul><li><a href={direccionHref} target="_blank" rel="noopener">{contacto.direccion}</a></li></ul>
           </div>
         </div>
         <div class="fl-footer__base">
@@ -114,12 +136,21 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   const setMenu = (open: boolean) => {
     drawer?.classList.toggle('is-open', open);
     drawer?.setAttribute('aria-hidden', String(!open));
+    drawer?.toggleAttribute('inert', !open);
     openBtn?.setAttribute('aria-expanded', String(open));
     document.body.style.overflow = open ? 'hidden' : '';
+    if (open) closeBtn?.focus();
   };
   openBtn?.addEventListener('click', () => setMenu(true));
-  closeBtn?.addEventListener('click', () => setMenu(false));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+  const closeMenu = () => {
+    setMenu(false);
+    openBtn?.focus();
+  };
+  closeBtn?.addEventListener('click', closeMenu);
+  drawer?.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && openBtn?.getAttribute('aria-expanded') === 'true') closeMenu();
+  });
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!reduce) {
@@ -173,6 +204,23 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 </script>
 
 <style is:global>
+  .fl-page--landing .fl-header { background: var(--beige); backdrop-filter: none; }
+  .fl-page--landing .fl-nav { min-height: 78px; padding-block: 7px; }
+  .fl-page--landing .fl-nav__links { gap: clamp(15px, 2.8vw, 42px); }
+  .fl-page--landing .fl-nav__links a, .fl-page--landing .fl-nav__cta .fl-btn { text-transform: none; letter-spacing: .03em; font-size: 14px; }
+  .fl-brand__official { width: auto; height: 62px; object-fit: contain; }
+  .fl-floating-whatsapp { position: fixed; z-index: 35; bottom: max(18px, env(safe-area-inset-bottom)); right: max(15px, env(safe-area-inset-right)); width: 52px; height: 52px; display: grid; place-items: center; border: 2px solid var(--beige); border-radius: 50%; color: var(--beige); background: var(--olive); box-shadow: 0 4px 14px #281a2338; }
+  .fl-floating-whatsapp:hover { background: var(--olive-dark); }
+  @media (max-width: 960px) {
+    .fl-page--landing .fl-nav__cta .fl-btn { display: inline-flex; min-height: 40px; padding-inline: 13px; white-space: nowrap; }
+  }
+  @media (max-width: 720px) {
+    .fl-page--landing .fl-nav { min-height: 68px; gap: 7px; padding-inline: 12px; }
+    .fl-page--landing .fl-nav__cta { gap: 7px; }
+    .fl-page--landing .fl-nav__cta .fl-btn { font-size: 12px; }
+    .fl-page--landing .fl-menu-btn { width: 40px; height: 40px; }
+    .fl-brand__official { height: 51px; }
+  }
   .fl-header--fixed { position: fixed; background: rgba(242, 235, 225, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--rule); animation: fl-drop .4s ease; }
   .fl-header--fixed .fl-nav { padding-block: 12px; }
   .fl-header--fixed .fl-brand, .fl-header--fixed .fl-nav__links a { color: var(--plum); }
