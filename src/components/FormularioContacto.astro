@@ -26,7 +26,7 @@ const { visita = false } = Astro.props;
     <div class="chips">
       <label class="chip"><input type="radio" name="interes" value="Lote de 160 m²" checked /> Lote de 160 m²</label>
       <label class="chip"><input type="radio" name="interes" value="Lote de 200 m²" /> Lote de 200 m²</label>
-      <label class="chip"><input type="radio" name="interes" value="Lote con casa (prototipo)" /> Lote con casa</label>
+      {!visita && <label class="chip"><input type="radio" name="interes" value="Lote con casa (prototipo)" /> Lote con casa</label>}
     </div>
   </fieldset>
   <div class="form__row">
