@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { contacto } from '../config/site';
 
 interface Props {
   title?: string;
@@ -12,6 +13,41 @@ const {
   description = 'Aprovecha la preventa de Flamingo Residencial: Lotes de 160 m² y 200 m² con título de propiedad, agua, desagüe, alumbrado público y entrega inmediata. A solo 30 metros del Colegio Virgen Dolorosa.',
   lockViewport = false,
 } = Astro.props;
+const site = Astro.site!;
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+const canonical = new URL(pathname, site).href;
+const image = new URL('/residencial/plaza-aerea.jpg', site).href;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': new URL('/#organizacion', site).href,
+      name: 'Inmobiliaria Flamingo',
+      url: site.href,
+      image,
+      telephone: contacto.central.display,
+      sameAs: [contacto.instagram.url],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': new URL('/#sitio', site).href,
+      name: 'Residencial Flamingo',
+      url: site.href,
+      inLanguage: 'es-PE',
+      publisher: { '@id': new URL('/#organizacion', site).href },
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${canonical}#pagina`,
+      url: canonical,
+      name: title,
+      description,
+      inLanguage: 'es-PE',
+      isPartOf: { '@id': new URL('/#sitio', site).href },
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -22,6 +58,20 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_PE" />
+    <meta property="og:site_name" content="Residencial Flamingo" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:alt" content="Vista aérea de Residencial Flamingo en Tarapoto" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
     <link rel="icon" type="image/svg+xml" href="/brand/brandbook/isotipo-plum.svg" />
     <link
       rel="preload"
