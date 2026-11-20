@@ -17,8 +17,8 @@ const { visita = false } = Astro.props;
       <input id="f-tel" name="telefono" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" />
     </div>
     <div>
-      <label for="f-ciudad">Ciudad (opcional)</label>
-      <input id="f-ciudad" name="ciudad" type="text" autocomplete="address-level2" />
+      <label for="f-ciudad">Ciudad</label>
+      <input id="f-ciudad" name="ciudad" type="text" autocomplete="address-level2" required pattern=".*\S.*" />
     </div>
   </div>
   <fieldset class="form__row">
@@ -52,7 +52,7 @@ const { visita = false } = Astro.props;
     e.preventDefault();
     if (!form.checkValidity()) {
       const first = form.querySelector<HTMLInputElement>(':invalid');
-      if (err) { err.hidden = false; err.textContent = 'Completa tu nombre, un celular válido y acepta ser contactado.'; }
+      if (err) { err.hidden = false; err.textContent = 'Completa tu nombre, tu ciudad y un celular válido, y acepta ser contactado.'; }
       first?.focus();
       return;
     }
@@ -64,7 +64,7 @@ const { visita = false } = Astro.props;
         : 'Hola, quiero información sobre Residencial Flamingo.',
       `Nombre: ${d.get('nombre')}`,
       `Celular: ${d.get('telefono')}`,
-      d.get('ciudad') ? `Ciudad: ${d.get('ciudad')}` : '',
+      `Ciudad: ${String(d.get('ciudad')).trim()}`,
       `Me interesa: ${d.get('interes')}`,
       d.get('mensaje') ? `Mensaje: ${d.get('mensaje')}` : '',
     ].filter(Boolean);

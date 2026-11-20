@@ -66,8 +66,7 @@ const direccionHref = googleMapsUrl || contacto.mapa;
       <slot />
     </main>
     {landing && <a class="fl-floating-whatsapp" href={whatsapp(contacto.central.raw)} target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
-      <img src="/brand/iconos/whatsapp.svg" width="30" height="30" alt="" />
-      <span>WhatsApp</span>
+      <span class="fl-floating-whatsapp__icon" aria-hidden="true"></span>
     </a>}
 
     {prefooter && (
@@ -205,9 +204,10 @@ const direccionHref = googleMapsUrl || contacto.mapa;
   .fl-page--landing .fl-nav__links { gap: clamp(15px, 2.8vw, 42px); }
   .fl-page--landing .fl-nav__links a, .fl-page--landing .fl-nav__cta .fl-btn { text-transform: none; letter-spacing: .03em; font-size: 14px; }
   .fl-brand__official { width: auto; height: 62px; object-fit: contain; }
-  .fl-floating-whatsapp { position: fixed; z-index: 35; bottom: max(18px, env(safe-area-inset-bottom)); right: max(15px, env(safe-area-inset-right)); display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 16px 8px 10px; border: 2px solid #25d366; border-radius: 999px; color: #fff; background: #0d482b; box-shadow: 0 5px 20px #0d482b55; font-size: 14px; font-weight: 700; text-decoration: none; }
-  .fl-floating-whatsapp:hover { background: #145b38; }
-  .fl-floating-whatsapp:focus-visible { outline: 2px solid #0d482b; outline-offset: 3px; }
+  .fl-floating-whatsapp { position: fixed; z-index: 35; bottom: max(18px, env(safe-area-inset-bottom)); right: max(15px, env(safe-area-inset-right)); width: 52px; height: 52px; display: grid; place-items: center; border: 2px solid var(--beige); border-radius: 50%; color: var(--beige); background: var(--olive); box-shadow: 0 4px 14px #281a2338; }
+  .fl-floating-whatsapp__icon { width: 25px; height: 25px; background: currentColor; mask: url("/brand/iconos/whatsapp.svg") center / contain no-repeat; }
+  .fl-floating-whatsapp:hover { background: var(--olive-dark); }
+  .fl-floating-whatsapp:focus-visible { outline: 2px solid var(--olive); outline-offset: 3px; }
   @media (max-width: 960px) {
     .fl-page--landing .fl-nav__cta .fl-btn { display: inline-flex; min-height: 40px; padding-inline: 13px; white-space: nowrap; }
   }
