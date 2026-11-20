@@ -17,8 +17,8 @@ const { visita = false } = Astro.props;
       <input id="f-tel" name="telefono" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}" />
     </div>
     <div>
-      <label for="f-email">Correo (opcional)</label>
-      <input id="f-email" name="email" type="email" autocomplete="email" />
+      <label for="f-ciudad">Ciudad (opcional)</label>
+      <input id="f-ciudad" name="ciudad" type="text" autocomplete="address-level2" />
     </div>
   </div>
   <fieldset class="form__row">
@@ -64,7 +64,7 @@ const { visita = false } = Astro.props;
         : 'Hola, quiero información sobre Residencial Flamingo.',
       `Nombre: ${d.get('nombre')}`,
       `Celular: ${d.get('telefono')}`,
-      d.get('email') ? `Correo: ${d.get('email')}` : '',
+      d.get('ciudad') ? `Ciudad: ${d.get('ciudad')}` : '',
       `Me interesa: ${d.get('interes')}`,
       d.get('mensaje') ? `Mensaje: ${d.get('mensaje')}` : '',
     ].filter(Boolean);
@@ -79,7 +79,7 @@ const { visita = false } = Astro.props;
   .form__row--2 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
   .form__row--2 > div { display: grid; gap: 8px; }
   .form label, .form legend { font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--plum); }
-  .form input[type='text'], .form input[type='tel'], .form input[type='email'], .form select, .form textarea {
+  .form input[type='text'], .form input[type='tel'], .form select, .form textarea {
     font: inherit; font-size: 16px; color: var(--ink); background: var(--beige); border: 1px solid rgba(70,41,57,.28); border-radius: 4px; padding: 13px 14px; min-height: 48px; width: 100%; box-sizing: border-box;
   }
   .form input:focus-visible, .form select:focus-visible, .form textarea:focus-visible { outline: 2px solid var(--olive); outline-offset: 1px; border-color: var(--olive); }

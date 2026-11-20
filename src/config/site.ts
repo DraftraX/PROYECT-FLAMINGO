@@ -7,7 +7,7 @@ export const contacto = {
   ],
   instagram: { handle: '@inmobiliaria.flamingo', url: 'https://www.instagram.com/inmobiliaria.flamingo/' },
   direccion: 'Prolongación Jr. Cuzco s/n, Tarapoto, San Martín',
-  mapa: 'https://www.google.com/maps/search/?api=1&query=Prolongaci%C3%B3n+Jr.+Cuzco+Tarapoto',
+  mapa: 'https://www.google.com/maps/search/?api=1&query=-6.5051912%2C-76.3576442',
 };
 
 export const whatsapp = (raw: string, text = 'Hola, quiero información sobre Residencial Flamingo.') =>

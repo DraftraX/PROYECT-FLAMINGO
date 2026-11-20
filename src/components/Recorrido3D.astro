@@ -138,13 +138,13 @@ const paradas = [
     const sun = new THREE.DirectionalLight('#ffd7b0', 2.8);
     sun.position.set(-140, 120, 110);
     sun.castShadow = true;
-    sun.shadow.mapSize.setScalar(compact ? 1024 : 2048);
+    sun.shadow.mapSize.setScalar(compact ? 512 : exteriorOnly ? 1024 : 2048);
     Object.assign(sun.shadow.camera, { left: -170, right: 170, top: 170, bottom: -170, near: 10, far: 500 });
     sun.shadow.bias = -0.0006;
     scene.add(sun);
 
     // Suelo amplio alrededor del sitio
-    const tx = crearTexturas(THREE);
+    const tx = crearTexturas(THREE, compact);
     const groundMat = new THREE.MeshStandardMaterial({ roughness: 1 });
     triplanar(groundMat, tx.pasto, 0.05);
     groundMat.color.set('#c9d6b4');
@@ -485,7 +485,8 @@ const paradas = [
 </script>
 
 <style>
-  .r3d__stage { position: relative; width: 100%; height: min(82vh, 820px); min-height: 520px; overflow: hidden; border-radius: 4px; background: #2e1b26; outline: none; touch-action: none; }
+  .r3d__stage { position: relative; width: 100%; height: min(82vh, 820px); min-height: 520px; overflow: hidden; border-radius: 4px; background: #2e1b26; outline: none; }
+  .r3d__stage:has(.r3d__loading[hidden]) { touch-action: none; }
   .r3d__stage:focus-visible { box-shadow: 0 0 0 3px var(--olive); }
   .r3d__stage:fullscreen { border-radius: 0; height: 100vh; }
   :global(.r3d__canvas) { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }

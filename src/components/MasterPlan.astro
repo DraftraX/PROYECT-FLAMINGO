@@ -1,13 +1,15 @@
 ---
 import { contacto, whatsapp } from '../config/site';
 import { estadosLote, fichasComerciales } from '../config/landing';
-import { OFFICIAL_BLOCKS, PLAN_HEIGHT, PLAN_WIDTH } from '../data/officialPlan';
+import { OFFICIAL_BLOCKS } from '../data/officialPlan';
+import { LANDSCAPE_LOT_PATHS, PLAN_HEIGHT, PLAN_WIDTH } from '../data/landscapePlan';
 
 const areaFormat = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 2 });
 const lotes = OFFICIAL_BLOCKS.flatMap((block) => block.lots.map((lot) => {
   const ficha = fichasComerciales[lot.id];
   return {
     ...lot,
+    path: LANDSCAPE_LOT_PATHS[lot.id],
     manzana: block.letter,
     estado: ficha?.estado ?? 'por-confirmar',
     area: lot.areaSqm === undefined ? 'Por confirmar' : `${areaFormat.format(lot.areaSqm)} m²`,
@@ -34,9 +36,9 @@ const datosFicha = lotes.map(({ path, ...lot }) => lot);
         <button type="button" data-zoom="1" aria-label="Acercar">+</button>
       </div>
     </div>
-    <div class="mp__viewport" tabindex="0" role="region" aria-label="Plano de lotes. Puedes desplazar el plano al acercarlo." data-viewport>
+    <div class="mp__viewport" style={`--plan-ratio: ${PLAN_WIDTH} / ${PLAN_HEIGHT}`} tabindex="0" role="region" aria-label="Plano de lotes. Puedes desplazar el plano al acercarlo." data-viewport>
       <svg class="mp__map" viewBox={`0 0 ${PLAN_WIDTH} ${PLAN_HEIGHT}`} width={PLAN_WIDTH} height={PLAN_HEIGHT} aria-hidden="true">
-        <image href="/urbanization/flamingo-lots-plan.webp" width={PLAN_WIDTH} height={PLAN_HEIGHT} />
+        <image href="/landing/master-plan-horizontal.webp" width={PLAN_WIDTH} height={PLAN_HEIGHT} />
         {lotes.map((lot) => <path d={lot.path} data-lot={lot.id} data-status={lot.estado} />)}
       </svg>
     </div>
@@ -157,9 +159,10 @@ const datosFicha = lotes.map(({ path, ...lot }) => lot);
   [data-status="vendido"] { --status: #ca8d9a; }
   .mp__zoom button { min-height: 42px; min-width: 42px; padding-inline: 8px; border: 1px solid var(--rule); background: #faf7f2; color: var(--plum); font-weight: 700; cursor: pointer; }
   .mp__zoom button:disabled { opacity: .48; cursor: default; }
-  .mp__viewport { display: block; overflow: auto; height: clamp(430px, 74svh, 700px); background: #faf7f2; border: 1px solid var(--rule); }
-  .mp__map { width: min(100%, 520px); height: auto; display: block; margin-inline: auto; max-width: none; }
+  .mp__viewport { display: block; overflow: auto; aspect-ratio: var(--plan-ratio); background: #faf7f2; border: 1px solid var(--rule); }
+  .mp__map { width: 100%; height: auto; display: block; margin-inline: auto; max-width: none; }
   .mp__map path { fill: var(--status); fill-opacity: .35; stroke: var(--plum); stroke-opacity: .55; stroke-width: 1px; vector-effect: non-scaling-stroke; cursor: pointer; }
+  .mp__map path[data-status="por-confirmar"] { fill-opacity: 0; stroke-opacity: 0; }
   .mp__map path:hover, .mp__map path.is-selected { fill: var(--plum); fill-opacity: .45; stroke-opacity: 1; stroke-width: 2px; }
   .mp__sheet { background: #faf7f2; padding: clamp(18px, 3vw, 30px); }
   .mp__sheet label { display: block; color: var(--plum); font-weight: 700; margin-bottom: 8px; }
@@ -173,6 +176,7 @@ const datosFicha = lotes.map(({ path, ...lot }) => lot);
   .mp__actions a { padding-inline: 12px; letter-spacing: .04em; text-align: center; }
   @media (max-width: 720px) {
     .mp { grid-template-columns: minmax(0, 1fr); }
-    .mp__viewport { height: clamp(340px, 58svh, 510px); }
+    .mp__legend [data-status="por-confirmar"] { display: none; }
+    .mp__toolbar { justify-content: flex-end; }
   }
 </style>

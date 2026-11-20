@@ -45,41 +45,43 @@ function bricks(ctx: CanvasRenderingContext2D, size: number, rows: number, minW:
   }
 }
 
-function make(THREE: Three, draw: (ctx: CanvasRenderingContext2D, s: number) => void, size = 512) {
+function make(THREE: Three, draw: (ctx: CanvasRenderingContext2D, s: number) => void, size: number) {
   const [c, ctx] = canvas(size); draw(ctx, size);
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
   return t;
 }
 
-export function crearTexturas(THREE: Three) {
+export function crearTexturas(THREE: Three, compact = false) {
+  const drawTexture = (draw: (ctx: CanvasRenderingContext2D, size: number) => void) =>
+    make(THREE, draw, compact ? 256 : 512);
   return {
-    pasto: make(THREE, (c, s) => noise(c, s, '#5d7c32', ['#4a6726', '#6f8f3c', '#7d9a44', '#3f5a20'], 3, 0.32)),
-    asfalto: make(THREE, (c, s) => { noise(c, s, '#3a3939', ['#2c2b2b', '#4a4949', '#555353'], 5, 0.3); }),
-    vereda: make(THREE, (c, s) => {
+    pasto: drawTexture((c, s) => noise(c, s, '#617347', ['#4c6040', '#6e8054', '#858d61', '#46583b'], 3, 0.25)),
+    asfalto: drawTexture((c, s) => { noise(c, s, '#414345', ['#343638', '#494b4e', '#58595a'], 5, 0.22); }),
+    vereda: drawTexture((c, s) => {
       noise(c, s, '#c9c5be', ['#bdb9b2', '#d6d2cb', '#b2aea6'], 7, 0.22);
       c.strokeStyle = 'rgba(120,112,104,.45)'; c.lineWidth = 3;
       for (let i = 0; i <= 4; i++) { c.beginPath(); c.moveTo(0, i * s / 4); c.lineTo(s, i * s / 4); c.stroke(); c.beginPath(); c.moveTo(i * s / 4, 0); c.lineTo(i * s / 4, s); c.stroke(); }
     }),
-    terracota: make(THREE, (c, s) => { bricks(c, s, 8, 90, 140, ['#b8573f', '#ad503a', '#c26248', '#a54a35'], '#8f7b70', 2, 9); }),
-    maderaOscura: make(THREE, (c, s) => {
+    terracota: drawTexture((c, s) => { bricks(c, s, 8, 90, 140, ['#b8573f', '#ad503a', '#c26248', '#a54a35'], '#8f7b70', 2, 9); }),
+    maderaOscura: drawTexture((c, s) => {
       c.fillStyle = '#6e4529'; c.fillRect(0, 0, s, s); const r = rnd(11);
       for (let y = 0; y < s; y += 2) { c.fillStyle = `rgba(${40 + r() * 60},${22 + r() * 30},${10 + r() * 15},${0.25 + r() * 0.3})`; c.fillRect(0, y, s, 1 + r() * 2); }
       for (let y = 0; y < s; y += 32) { c.fillStyle = 'rgba(30,18,10,.55)'; c.fillRect(0, y, s, 2); }
     }),
-    maderaClara: make(THREE, (c, s) => {
+    maderaClara: drawTexture((c, s) => {
       c.fillStyle = '#b68c60'; c.fillRect(0, 0, s, s); const r = rnd(13);
       for (let y = 0; y < s; y += 2) { c.fillStyle = `rgba(${120 + r() * 60},${80 + r() * 40},${40 + r() * 30},${0.2 + r() * 0.3})`; c.fillRect(0, y, s, 1 + r() * 2); }
       for (let y = 0; y < s; y += 40) { c.fillStyle = 'rgba(70,45,25,.55)'; c.fillRect(0, y, s, 3); }
     }),
-    piedraApilada: make(THREE, (c, s) => bricks(c, s, 22, 40, 120, ['#7d7e82', '#8f9094', '#6c6d71', '#9fa0a4', '#77787b'], '#4c4d50', 1.5, 17)),
-    pizarra: make(THREE, (c, s) => bricks(c, s, 26, 50, 150, ['#2b2b2d', '#353538', '#232325', '#3e3e41'], '#161617', 1.2, 19)),
-    piedra: make(THREE, (c, s) => {
+    piedraApilada: drawTexture((c, s) => bricks(c, s, 22, 40, 120, ['#7d7e82', '#8f9094', '#6c6d71', '#9fa0a4', '#77787b'], '#4c4d50', 1.5, 17)),
+    pizarra: drawTexture((c, s) => bricks(c, s, 26, 50, 150, ['#2b2b2d', '#353538', '#232325', '#3e3e41'], '#161617', 1.2, 19)),
+    piedra: drawTexture((c, s) => {
       bricks(c, s, 3, 160, 260, ['#cbc7c0', '#c2beb6', '#d3cfc8'], '#a7a39c', 2, 23);
       c.globalAlpha = 0.25; noise(c, s, 'rgba(0,0,0,0)', ['#b5b1aa', '#ddd9d2'], 29, 0.25); c.globalAlpha = 1;
     }),
-    yeso: make(THREE, (c, s) => noise(c, s, '#f2f0eb', ['#ebe8e2', '#f7f5f1', '#e6e3dc'], 31, 0.12)),
-    yesoGris: make(THREE, (c, s) => noise(c, s, '#a3a19e', ['#999794', '#adaba8', '#94928f'], 37, 0.16)),
+    yeso: drawTexture((c, s) => noise(c, s, '#f2f0eb', ['#ebe8e2', '#f7f5f1', '#e6e3dc'], 31, 0.12)),
+    yesoGris: drawTexture((c, s) => noise(c, s, '#a3a19e', ['#999794', '#adaba8', '#94928f'], 37, 0.16)),
   };
 }
 

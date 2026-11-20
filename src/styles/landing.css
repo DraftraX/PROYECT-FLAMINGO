@@ -20,7 +20,6 @@
 .landing-hero__actions { margin-top: 27px; display: flex; flex-wrap: wrap; gap: 10px; }
 .landing-hero__actions a:first-child { color: var(--plum); font-weight: 700; }
 .landing-hero__actions a:last-child { background: rgba(46,27,38,.44); }
-.landing-hero__credit { position: absolute; right: var(--gutter); bottom: 16px; font-size: 11px; letter-spacing: .08em; }
 
 .landing-band { padding-block: var(--landing-space); }
 .landing-split { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); gap: clamp(24px, 5vw, 68px); align-items: center; }
@@ -29,7 +28,7 @@
 .landing-copy > .fl-btn { margin-top: 24px; }
 .landing-photo { position: relative; margin: 0; overflow: hidden; background: var(--sand); }
 .landing-photo img { display: block; width: 100%; height: auto; object-fit: cover; }
-.landing-photo figcaption { position: absolute; right: 10px; bottom: 10px; background: var(--plum); color: var(--beige); padding: 4px 9px; font-size: 11px; }
+.landing-photo figcaption { position: absolute; left: 10px; bottom: 10px; background: #faf7f2e8; color: #161616; padding: 4px 9px; font-size: 11px; }
 .landing-history .landing-photo { align-self: stretch; min-height: 380px; }
 .landing-history .landing-photo img { position: absolute; inset: 0; height: 100%; object-position: 43% center; }
 
@@ -51,6 +50,7 @@
 .landing-location { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); align-items: stretch; }
 .landing-location .landing-photo { min-height: 340px; }
 .landing-location .landing-photo img { position: absolute; inset: 0; height: 100%; }
+.landing-location--city .landing-photo img { object-view-box: inset(27% 0 0); object-position: center bottom; }
 .landing-location .landing-copy { align-self: stretch; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: clamp(32px, 5vw, 76px) var(--gutter); }
 .landing-location--city { background: var(--sand); }
 .landing-location--project { grid-template-columns: minmax(0,1.12fr) minmax(0,.88fr); }
@@ -62,13 +62,17 @@
 .landing-attributes article:nth-child(5) { grid-column: 2 / span 2; }
 .landing-attributes h4 { color: var(--beige); margin-top: 9px; }
 .landing-attributes svg { display: block; margin-inline: auto; width: 80px; height: 80px; }
-.landing-avenue { margin-top: clamp(28px, 4vw, 48px); }
 .landing-avenue img { aspect-ratio: 3 / 1; object-position: 50% 56%; }
 .landing-plan { background: #f5efe7; }
-.landing-tour { background: var(--sand); }
+.landing-tour { background: #f5efe7; }
+.landing-tour .landing-band { padding-top: 0; }
+.landing-explore__links { margin-top: 16px; }
 .landing-tour__media { display: grid; gap: 32px; margin-top: 25px; }
 .landing-tour__media .fl-h3 { margin-bottom: 12px; }
-.landing-tour video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--plum-dark); }
+.landing-tour__video { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; background: var(--plum-dark); }
+.landing-tour__video-link { margin-top: 10px; }
+.landing-altoplanta { display: block; width: 100%; height: clamp(380px, 68svh, 720px); border: 0; background: var(--sand); }
+.landing-altoplanta--map { margin-top: 26px; }
 .landing .landing-tour__caption { margin-top: 12px; font-size: 14px; }
 .landing-legal details { margin-top: 19px; }
 .landing-legal summary { cursor: pointer; font-weight: 700; text-decoration: underline; text-underline-offset: .22em; }
@@ -91,7 +95,6 @@
   .landing-hero::after { background: linear-gradient(0deg, rgba(36,22,29,.91), rgba(36,22,29,.30) 70%, transparent); }
   .landing-hero .fl-h1 { text-wrap: wrap; }
   .landing-hero__content { padding-bottom: 65px; }
-  .landing-hero__credit { right: auto; left: var(--gutter); bottom: 10px; }
   .landing-hero__actions .fl-btn { padding-inline: 16px; }
   .landing-split, .landing-mission, .landing-location { grid-template-columns: minmax(0,1fr); }
   .landing-history .landing-photo { min-height: 0; aspect-ratio: 4 / 3; }

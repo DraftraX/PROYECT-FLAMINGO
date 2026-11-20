@@ -40,3 +40,11 @@ const configuredMaps = import.meta.env.PUBLIC_FLAMINGO_GOOGLE_MAPS_URL || '';
 export const googleMapsUrl = /^https:\/\/(?:maps\.app\.goo\.gl\/|(?:www\.)?google\.com\/maps\/)/i.test(configuredMaps)
   ? configuredMaps
   : '';
+
+export const tourAltoPlantaUrl = 'https://altoplanta.com/360/df9dd75a-bf04-40d2-a450-9b8525f894ae?embed=1&mapa=4f21792a-f072-4bcf-a8f4-6478cb24c55f';
+
+const configuredEmbed = import.meta.env.PUBLIC_ALTOPLANTA_MAPA_URL || '';
+// Allow only the public embed format. Management links never belong in the page.
+export const mapaAltoPlantaUrl = /^https:\/\/altoplanta\.com\/embed\/mapa\/\?mapa=[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}#token=[A-Za-z0-9_-]+$/i.test(configuredEmbed)
+  ? configuredEmbed
+  : '';
