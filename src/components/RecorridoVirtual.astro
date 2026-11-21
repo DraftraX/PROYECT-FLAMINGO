@@ -104,6 +104,7 @@ const ambientes = [
 
     const loader = new THREE.TextureLoader();
     const cache = new Map<string, import('three').Texture>();
+    let loadVersion = 0;
     let proto = protos.find((p) => p.id === Number(root.dataset.start)) || protos[0];
     let room: Room = 'sala';
     let lon = 180, lat = 0, autoRotate = true;
@@ -114,8 +115,11 @@ const ambientes = [
 
     function load(p: number, r: Room, keepView = false) {
       const key = url(p, r);
+      const version = ++loadVersion;
+      loadingEl.textContent = 'Cargando ambiente…';
       loadingEl.hidden = false;
       const apply = (tex: import('three').Texture) => {
+        if (version !== loadVersion) return;
         material.map = tex;
         material.needsUpdate = true;
         loadingEl.hidden = true;
@@ -130,6 +134,8 @@ const ambientes = [
         tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
         cache.set(key, tex);
         apply(tex);
+      }, undefined, () => {
+        if (version === loadVersion) loadingEl.textContent = 'No se pudo cargar el ambiente. Selecciona otro para reintentar.';
       });
     }
 
@@ -223,11 +229,12 @@ const ambientes = [
       return v.set(Math.sin(phi) * Math.cos(theta), Math.cos(phi), Math.sin(phi) * Math.sin(theta));
     };
 
-    let visible = true;
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+    let visible = false;
+    const updateLoop = () => renderer.setAnimationLoop(visible && !document.hidden ? render : null);
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; updateLoop(); }).observe(stage);
+    document.addEventListener('visibilitychange', updateLoop);
 
-    renderer.setAnimationLoop(() => {
-      if (!visible) return;
+    function render() {
       if (autoRotate) lon += 0.04;
       lat = THREE.MathUtils.clamp(lat, -85, 85);
       const phi = THREE.MathUtils.degToRad(90 - lat);
@@ -243,7 +250,7 @@ const ambientes = [
         b.style.display = front ? '' : 'none';
         b.style.transform = `translate(${((p.x + 1) / 2) * w}px, ${((1 - p.y) / 2) * h}px) translate(-50%, -50%)`;
       });
-    });
+    }
 
     setActive();
     load(proto.id, room);

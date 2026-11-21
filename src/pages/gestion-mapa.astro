@@ -1,0 +1,54 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/site.css';
+---
+
+<Layout title="Gestión de lotes | Flamingo Residencial" description="Acceso al mapa de gestión de lotes." noindex>
+  <main class="management fl-wrap">
+    <a href="/" class="fl-link">← Volver al inicio</a>
+    <h1 class="fl-h2">Gestión de lotes</h1>
+    <p>Pega el enlace de gestión de AltoPlanta para abrir el mapa y seleccionar un lote.</p>
+    <form data-management-form>
+      <label for="management-url">Enlace de gestión</label>
+      <input id="management-url" type="password" required autocomplete="off" spellcheck="false" />
+      <button class="fl-btn fl-btn--plum" type="submit">Abrir mapa</button>
+      <p role="alert" data-error hidden>Introduce un enlace de gestión válido de AltoPlanta.</p>
+    </form>
+    <div data-map></div>
+  </main>
+</Layout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-management-form]')!;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const input = document.querySelector<HTMLInputElement>('#management-url')!;
+    const error = document.querySelector<HTMLElement>('[data-error]')!;
+    try {
+      const url = new URL(input.value.trim());
+      if (url.origin !== 'https://altoplanta.com' || url.pathname !== '/embed/mapa/' || !url.searchParams.get('mapa') || !/^#gestion=[A-Za-z0-9_-]+$/.test(url.hash)) throw new Error('URL inválida');
+      const frame = document.createElement('iframe');
+      frame.src = url.href;
+      frame.title = 'Mapa de gestión de lotes';
+      frame.referrerPolicy = 'no-referrer';
+      frame.allow = 'fullscreen; accelerometer; gyroscope; xr-spatial-tracking';
+      frame.allowFullscreen = true;
+      document.querySelector('[data-map]')!.replaceChildren(frame);
+      input.value = '';
+      error.hidden = true;
+    } catch {
+      error.hidden = false;
+    }
+  });
+</script>
+
+<style>
+  .management { padding-block: 48px; }
+  .management h1 { margin: 28px 0 12px; }
+  .management form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-block: 24px; }
+  .management label { flex-basis: 100%; font-weight: 700; }
+  .management input { flex: 1 1 320px; min-width: 0; min-height: 48px; padding: 10px; border: 1px solid var(--rule); }
+  .management [role='alert'] { flex-basis: 100%; color: #a32c37; }
+  .management iframe { display: block; width: 100%; height: min(75vh, 800px); min-height: 420px; border: 0; }
+  [hidden] { display: none; }
+</style>

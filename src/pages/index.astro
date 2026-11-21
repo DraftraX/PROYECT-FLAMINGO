@@ -1,7 +1,6 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import Icono from '../components/Icono.astro';
-import MasterPlan from '../components/MasterPlan.astro';
 import FormularioContacto from '../components/FormularioContacto.astro';
 import Recorrido3D from '../components/Recorrido3D.astro';
 import { contacto } from '../config/site';
@@ -92,7 +91,7 @@ const conceptos = [
       </div>
       <div class="fl-wrap landing-band landing-split landing-location--project">
         <figure class="landing-photo">
-          <img src="/landing/acceso-principal.webp" width="1671" height="941" loading="lazy" decoding="async" alt="Acceso principal proyectado con pórtico y jardines" />
+          <img src="/landing/acceso-principal.webp" srcset="/landing/acceso-principal-900.webp 900w, /landing/acceso-principal.webp 1671w" sizes="(max-width: 720px) 100vw, 55vw" width="1671" height="941" loading="lazy" decoding="async" alt="Acceso principal proyectado con pórtico y jardines" />
 
         </figure>
         <div class="landing-copy">
@@ -112,7 +111,7 @@ const conceptos = [
             <p>Un desarrollo residencial en Tarapoto que integra planificación urbana, formalidad, naturaleza y una propuesta arquitectónica con identidad propia.</p>
           </div>
           <figure class="landing-photo">
-            <img src="/landing/vista-aerea.webp" width="1672" height="941" loading="lazy" decoding="async" alt="Vista aérea del conjunto proyectado, con las manzanas, vías y el parque central" />
+            <img src="/landing/vista-aerea.webp" srcset="/landing/vista-aerea-900.webp 900w, /landing/vista-aerea.webp 1672w" sizes="(max-width: 720px) 100vw, 55vw" width="1672" height="941" loading="lazy" decoding="async" alt="Vista aérea del conjunto proyectado, con las manzanas, vías y el parque central" />
 
           </figure>
         </div>
@@ -155,7 +154,7 @@ const conceptos = [
 
       <div class="landing-location landing-location--experience landing-plum">
         <figure class="landing-photo">
-          <img src="/landing/parque-central.webp" width="1671" height="941" loading="lazy" decoding="async" alt="Parque central proyectado con palmeras, jardines y espacios recreativos" />
+          <img src="/landing/parque-central.webp" srcset="/landing/parque-central-900.webp 900w, /landing/parque-central.webp 1671w" sizes="(max-width: 720px) 100vw, 65vw" width="1671" height="941" loading="lazy" decoding="async" alt="Parque central proyectado con palmeras, jardines y espacios recreativos" />
 
         </figure>
         <div class="landing-copy landing-pattern">
@@ -170,12 +169,10 @@ const conceptos = [
           <div class="landing-copy">
             <p class="landing-label">Master Plan Interactivo</p>
             <h3 class="fl-h2">Explora Flamingo Residencial</h3>
-            <p>{mapaAltoPlantaUrl ? 'Selecciona el residencial en el mapa para explorar sus lotes.' : 'Toca un lote en el plano o búscalo por manzana en el selector. Usa + para acercarte.'}</p>
+            <p>Explora el plano interactivo y selecciona un lote para conocer sus detalles.</p>
           </div>
           <p class="landing-explore__links"><a href="#recorrido" class="fl-link">Ir al Tour 360° ↓</a></p>
-          {mapaAltoPlantaUrl
-            ? <iframe class="landing-altoplanta landing-altoplanta--map" src={mapaAltoPlantaUrl} title="Mapa de lotes de Residencial Flamingo" loading="lazy"></iframe>
-            : <MasterPlan />}
+          <iframe class="landing-altoplanta landing-altoplanta--map" src={mapaAltoPlantaUrl} title="Mapa de lotes de Residencial Flamingo" loading="lazy" referrerpolicy="no-referrer" allow="fullscreen; accelerometer; gyroscope; xr-spatial-tracking" allowfullscreen></iframe>
         </div>
       </div>
 
@@ -187,21 +184,12 @@ const conceptos = [
           </div>
           <div class="landing-tour__media">
             <figure class="landing-photo landing-avenue">
-              <img src="/landing/avenida-principal.webp" width="1672" height="941" loading="lazy" decoding="async" alt="Avenida principal proyectada con veredas, jardines y viviendas" />
+              <img src="/landing/avenida-principal.webp" srcset="/landing/avenida-principal-900.webp 900w, /landing/avenida-principal.webp 1672w" sizes="100vw" width="1672" height="941" loading="lazy" decoding="async" alt="Avenida principal proyectada con veredas, jardines y viviendas" />
 
             </figure>
-            <div>
-              <h4 class="fl-h3">Video del proyecto</h4>
-              <iframe
-                class="landing-tour__video"
-                src="https://drive.google.com/file/d/19j0Hem0FrnvBofKr9m4G0AiUUKSVL4Wb/preview"
-                title="Video del render de Flamingo Residencial"
-                loading="lazy"
-                allow="fullscreen"
-                allowfullscreen
-              ></iframe>
+            <div class="landing-embed landing-embed--tour" data-embed-url={tourAltoPlantaUrl} data-embed-title="Tour 360° de Residencial Flamingo">
+              <button type="button" class="fl-btn fl-btn--solid" data-embed-start>Iniciar tour 360°</button>
             </div>
-            <iframe class="landing-altoplanta" src={tourAltoPlantaUrl} title="Tour 360° de Residencial Flamingo" loading="lazy" allow="fullscreen; gyroscope; accelerometer" allowfullscreen></iframe>
             <div>
               <h4 class="fl-h3">Recorrido 3D exterior</h4>
               <Recorrido3D exteriorOnly />
@@ -220,3 +208,17 @@ const conceptos = [
     </section>
   </div>
 </SiteLayout>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-embed-url]').forEach((container) => {
+    container.querySelector<HTMLButtonElement>('[data-embed-start]')?.addEventListener('click', () => {
+      const frame = document.createElement('iframe');
+      frame.src = container.dataset.embedUrl!;
+      frame.title = container.dataset.embedTitle!;
+      frame.allow = 'fullscreen; gyroscope; accelerometer';
+      frame.allowFullscreen = true;
+      container.replaceChildren(frame);
+      frame.focus();
+    }, { once: true });
+  });
+</script>

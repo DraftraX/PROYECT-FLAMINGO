@@ -6,12 +6,14 @@ interface Props {
   title?: string;
   description?: string;
   lockViewport?: boolean;
+  noindex?: boolean;
 }
 
 const {
   title = 'Flamingo Residencial — Preventa de Lotes de 160 m² y 200 m² | Entrega Inmediata',
   description = 'Aprovecha la preventa de Flamingo Residencial: Lotes de 160 m² y 200 m² con título de propiedad, agua, desagüe, alumbrado público y entrega inmediata. A solo 30 metros del Colegio Virgen Dolorosa.',
   lockViewport = false,
+  noindex = false,
 } = Astro.props;
 const site = Astro.site!;
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
@@ -58,6 +60,7 @@ const structuredData = {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="es_PE" />
